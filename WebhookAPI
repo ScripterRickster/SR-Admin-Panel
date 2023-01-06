@@ -1,0 +1,36 @@
+local HTTP = game:GetService("HttpService")
+
+local webhook = {}
+
+
+function webhook.SendLog(wbhkid,content)
+	
+	if wbhkid and content then
+		
+		
+		local id = string.gsub(wbhkid,"https://discord.com/api/webhooks/","")
+		
+		
+		
+		local data = {
+			
+			["content"] = content,
+			
+		}
+		
+		
+		local ndata = HTTP:JSONEncode(data)
+		local webhook = "https://webhook.lewisakura.moe/api/webhooks/"..id.."/queue"
+		HTTP:PostAsync(webhook,ndata)
+
+		
+		
+		
+		
+	end
+
+	
+end
+
+
+return webhook
