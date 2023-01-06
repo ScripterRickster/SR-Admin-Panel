@@ -1,0 +1,991 @@
+wait(0.01)
+
+local DDS = game:GetService("DataStoreService")
+
+local TPS = game:GetService("TeleportService")
+
+local RS = game:GetService("ReplicatedStorage").SRAdminEvents
+
+local CS = game:GetService("CollectionService")
+
+
+local frameworkVals = script.FrameworkVals
+
+local APIs = script["API's"]
+
+local wbhkAPI = require(APIs.WebhookAPI)
+
+
+local servwebhook = frameworkVals.WebhookIdServ
+
+local reasonvalue = frameworkVals.Reason
+
+local UIs = script.UIs
+
+local warngui = UIs.WarnGui
+
+local servmsgui = UIs.ServerMessage
+
+local FlightStuff = script.FlightStuff
+
+local PlrRanks = script.PlayerRanks
+
+local webhookenable = frameworkVals.WebhookEnable
+
+local webhookid = frameworkVals.WebhookIdServ.Value
+
+local ActiveServMsg = frameworkVals.ActiveServMsg
+
+local MiscStuff = script.MiscellaneousStuff
+
+
+
+
+local BanStore = DDS:GetDataStore(game.PlaceId,"Banned_Users")
+
+local TS = game:GetService("TextService")
+
+local HTTP = game:GetService("HttpService")
+
+local SStorage = game:GetService("ServerStorage")
+
+local Teams = game:GetService("Teams")
+
+local Players = game:GetService("Players")
+
+local ServerScriptService = game:GetService("ServerScriptService")
+
+local ChatService = require(ServerScriptService:WaitForChild("ChatServiceRunner"):WaitForChild("ChatService"))
+
+--intializing variables
+local StaffRank = nil
+local TargRank = nil
+
+local VerVent = RS.VerVent
+local UnbanEvent = RS.UnbanEvent
+local PosEvent = RS.PosEvent
+local PltEvent = RS.PltEvent
+local CLTEvent = RS.CLTEvent
+local ADMEventV2 = RS.ADMEventV2
+local UpdateTools = RS.UpdateTools
+local DPlrBP = RS.DisplayPlrBPEvent
+local DVeh = RS.DispVehEvent
+
+local config = require(script.Parent:WaitForChild("SR_Loader"):WaitForChild("Config"))
+local rjcmdenabled =  config.rejoincmdenabled
+local SCTenabled = config.chattagenabled
+local stafftags = config.stafftags
+local defaulthealth = config.defaulthealth
+local tools = SStorage:WaitForChild("Tools"):GetChildren()
+local vehicles = SStorage.Vehicles
+
+local currtools = {}
+local removetools = {}
+
+
+--DEVELOPER NOTE: PLEASE DO NOT TOUCH CODE THAT IS GREY. DOING SO MAY RESULT IN SEVERAL ERRORS BEING PRODUCED
+
+ADMEventV2.OnServerEvent:Connect(function(player,opttarg,opttargid,action,optreason,optextraval,Type)
+	if player and action then
+			StaffRank = PlrRanks[player.Name].Value
+			TargRank = PlrRanks[opttarg].Value
+
+			if Type == "Moderation" then
+
+				local filtered,errors = pcall(function()
+					local filteredReasonResult = TS:FilterStringAsync(optreason, player.UserId)
+					local filteredreason = filteredReasonResult:GetNonChatStringForBroadcastAsync()
+					reasonvalue.Value = filteredreason
+				end)
+				if not filtered then
+					print("Failed to filter: "..optreason) -- debugging
+					ADMEventV2:Disconnect()
+				end
+
+
+
+
+				if StaffRank > TargRank then
+					if action == "Mute" then
+
+						if reasonvalue.Value then
+							local AllChats = ChatService:GetChannel("All")
+							AllChats:MuteSpeaker(game.Players[opttarg].Name)
+
+							if webhookenable.Value == true then
+								local content = opttarg.."** ("..game.Players[opttarg].UserId..")** ".." has been **muted** by: **"..player.Name.." ("..player.UserId..")** Reason: **"..reasonvalue.Value.."**"
+								wbhkAPI.SendLog(webhookid,content)
+							end
+
+						end
+
+					elseif action == "Unmute" then
+
+						if reasonvalue.Value then
+							local AllChats = ChatService:GetChannel("All")
+							AllChats:UnmuteSpeaker(game.Players[opttarg].Name)
+
+							if webhookenable.Value == true then
+								local content = opttarg.."** ("..game.Players[opttarg].UserId..")** ".." has been **unmuted** by: **"..player.Name.." ("..player.UserId..")** Reason: **"..reasonvalue.Value.."**"
+								wbhkAPI.SendLog(webhookid,content)
+
+							end
+
+						end
+
+					elseif action == "Warn" then
+
+						if reasonvalue.Value then
+
+							local nwarngui = warngui:Clone()
+							local reasonlabel = nwarngui.Background.WarnFrame.Reason
+							local timeleft = nwarngui.Background.WarnFrame.TimeLeft
+
+							local warnframe = nwarngui:WaitForChild("Background"):WaitForChild("WarnFrame")
+
+							warnframe.Exit.Exit.Disabled = false
+							warnframe.TimeLeft.Countdown.Disabled = false
+
+
+							reasonlabel.Text = "You have been warned for: "..reasonvalue.Value
+							nwarngui.Parent = game.Players[opttarg]:WaitForChild("PlayerGui")
+							if webhookenable.Value == true then
+								local content = opttarg.."** ("..game.Players[opttarg].UserId..")** ".." has been **warned** by: **"..player.Name.." ("..player.UserId..")** Reason: **"..reasonvalue.Value.."**"
+								wbhkAPI.SendLog(webhookid,content)
+
+
+							end
+
+
+						end
+
+
+					elseif action == "Kick" then
+
+						if reasonvalue.Value then
+
+							if webhookenable.Value == true then
+								local content = opttarg.."** ("..game.Players[opttarg].UserId..")** ".." has been **kicked** by: **"..player.Name.." ("..player.UserId..")** Reason: **"..reasonvalue.Value.."**"
+								wbhkAPI.SendLog(webhookid,content)
+							end
+
+
+							game.Players[opttarg]:Kick(reasonvalue.Value)
+
+
+
+						end
+
+					elseif action == "Ban" then
+
+						if reasonvalue.Value then
+
+							BanStore:SetAsync(game.Players[opttarg].UserId,true)
+							if webhookenable.Value == true then
+
+								local content = opttarg.."** ("..game.Players[opttarg].UserId..")** ".." has been **banned** by: **"..player.Name.." ("..player.UserId..")** Reason: **"..reasonvalue.Value.."**"
+								wbhkAPI.SendLog(webhookid,content)
+
+
+							end
+
+							game.Players[opttarg]:Kick("You have been banned. Reason: "..reasonvalue.Value)
+
+
+
+
+
+						end
+
+
+					elseif action == "Bring" then
+
+						if reasonvalue.Value then
+
+
+							local targplr = game.Players:WaitForChild(opttarg)
+
+							local targchar = targplr.Character or targplr.CharacterAdded:Wait()
+
+
+							local targplrpos = CFrame.new(targchar.PrimaryPart.Position)
+
+							local staffchar = player.Character or player.CharacterAdded:Wait()
+
+							local staffmempos = CFrame.new(staffchar.PrimaryPart.Position)
+
+
+							targchar:SetPrimaryPartCFrame(staffmempos)
+
+
+
+
+							if webhookenable.Value == true then
+								local content = opttarg.."** ("..game.Players[opttarg].UserId..")** ".." has been **brought to:**  **"..player.Name.." ("..player.UserId..")** Reason: **"..reasonvalue.Value.."**"
+								wbhkAPI.SendLog(webhookid,content)
+
+							end
+
+
+						end
+
+
+					end
+
+
+
+
+
+				end
+
+
+
+
+				if action == "Unban" then
+
+					if opttargid ~= nil or opttargid ~= 0 then
+						BanStore:SetAsync(opttargid,false)
+						if webhookenable.Value == true then
+
+							local content = "**"..player.Name.." ("..player.UserId..")** has ***Unbanned*** **:"..opttargid.."(User Id). Reason: "..reasonvalue.Value.."**"
+							wbhkAPI.SendLog(webhookid,content)
+
+						end
+					end
+
+
+				elseif action == "Shutdown" then
+
+					if reasonvalue.Value then
+						local gameplrs = Players:GetChildren()
+
+						if webhookenable.Value == true then
+							local content = "**"..player.Name.." ("..player.UserId..")** has ***shutdown*** the server. **Reason: "..reasonvalue.Value.."**"
+							wbhkAPI.SendLog(webhookid,content)
+
+						end
+
+						for i=1,#gameplrs do
+							gameplrs[i]:Kick("The server is being shutdown. Reason: "..reasonvalue.Value)
+						end
+
+
+					end
+
+
+				end
+
+
+
+			elseif Type == "Miscellaneous" then
+
+				if action == "Freeze" then
+					if StaffRank ~= nil and TargRank ~= nil then
+
+
+
+						if StaffRank >= TargRank then
+							if opttarg then
+								local char = game.Players[opttarg].Character or game.Players[opttarg].CharacterAdded:Wait()
+
+								if char:WaitForChild("Frozen").Value == false then
+									local charp = char:GetChildren()
+									for i=1,#charp do
+										if charp[i]:IsA("BasePart") or charp[i]:IsA("UnionOperation") or charp[i]:IsA("MeshPart") and charp[i].Name ~= "HumanoidRootPart" then
+											charp[i].Anchored = true
+										end
+									end
+									if char:WaitForChild("Head") and char:WaitForChild("HumanoidRootPart") then
+										local ft = MiscStuff.FT:Clone()
+										ft.Parent = char:WaitForChild("Head")
+									end
+
+									local lastpos = Instance.new("Vector3Value")
+									lastpos.Parent = script.FrozenUsers
+									lastpos.Name = game.Players[opttarg].Name
+									lastpos.Value = char:WaitForChild("HumanoidRootPart").Position
+
+
+									char:WaitForChild("Frozen").Value = true
+									if webhookenable.Value == true then
+										local content = "**"..player.Name.." ("..player.UserId..")** has **Freezed:  "..game.Players[opttarg].Name.." ("..game.Players[opttarg].UserId..")**"
+										wbhkAPI.SendLog(webhookid,content)
+
+									end
+
+
+
+								end
+
+							end
+
+
+						end
+
+
+					end
+
+
+
+				elseif action == "Unfreeze" then
+
+					if StaffRank ~= nil and TargRank ~= nil then
+
+
+						if StaffRank >= TargRank then
+							if opttarg then
+								local char = game.Players[opttarg].Character or game.Players[opttarg].CharacterAdded:Wait()
+
+
+								if char:WaitForChild("Frozen").Value == true then
+									local charp = char:GetChildren()
+									for i=1,#charp do
+										if charp[i]:IsA("BasePart") or charp[i]:IsA("UnionOperation") or charp[i]:IsA("MeshPart") and charp[i].Name ~= "HumanoidRootPart" then
+											charp[i].Anchored = false
+										end
+									end
+									if char:WaitForChild("Head") and char:WaitForChild("HumanoidRootPart") then
+										local ft = char.Head:WaitForChild("FT")
+										ft:Destroy()
+
+
+									end
+									char:WaitForChild("Frozen").Value = false
+									PltEvent:FireClient(player,opttarg,"Stand")
+
+									if script.FrozenUsers:FindFirstChild(game.Players[opttarg].Name) then
+										script.FrozenUsers[game.Players[opttarg].Name]:Destroy()
+									end
+									if webhookenable.Value == true then
+										local content = "**"..player.Name.." ("..player.UserId..")** has **Unfreezed:  "..game.Players[opttarg].Name.." ("..game.Players[opttarg].UserId..")**"
+										wbhkAPI.SendLog(webhookid,content)
+
+
+									end
+
+								end
+
+
+
+							end
+
+
+						end
+
+					end
+
+
+				elseif action == "Fly" then
+
+					if StaffRank ~= nil and TargRank ~= nil then
+
+
+						if StaffRank >= TargRank then
+							if opttarg then
+								local char = game.Players[opttarg].Character or game.Players[opttarg].CharacterAdded:Wait()
+
+								if char:WaitForChild("Flying").Value == false then
+									local fs = FlightStuff.Flight:Clone()
+									fs.Parent = char:WaitForChild("HumanoidRootPart")
+									local fg = FlightStuff.FlightGyro:Clone()
+									fg.Parent = char:WaitForChild("HumanoidRootPart")
+									local fp = FlightStuff.FlightPos:Clone()
+									fp.Parent = char:WaitForChild("HumanoidRootPart")
+									local fe = FlightStuff.FlyEvent:Clone()
+									fe.Parent = char:WaitForChild("HumanoidRootPart")
+									local fes = FlightStuff.FlyEventS:Clone()
+									fes.Parent = char:WaitForChild("HumanoidRootPart")
+									fs.Disabled = false
+									fes.Disabled = false
+									char:WaitForChild("Flying").Value = true
+									if webhookenable.Value == true then
+										local content = "**"..player.Name.."** ** ("..player.UserId..")** ".." has used the command **Fly** on: **"..game.Players[opttarg].Name.." ("..game.Players[opttarg].UserId..")**"
+										wbhkAPI.SendLog(webhookid,content)
+
+									end
+
+								end
+
+
+
+
+							end
+
+
+						end
+
+					end
+
+
+
+
+
+
+
+
+				elseif action == "Unfly" then
+
+
+					if StaffRank ~= nil and TargRank ~= nil then
+
+
+
+						if StaffRank >= TargRank then
+							if opttarg then
+								local char = game.Players[opttarg].Character or game.Players[opttarg].CharacterAdded:Wait()
+
+								if char:WaitForChild("Flying").Value == true then
+									local hm = char:WaitForChild("Humanoid")
+									local hrp = char:WaitForChild("HumanoidRootPart")
+									local flyevent = hrp:WaitForChild("FlyEvent")
+									local fs = hrp:WaitForChild("Flight")
+									local fg = hrp:WaitForChild("FlightGyro")
+									local fp = hrp:WaitForChild("FlightPos")
+									local fes = hrp:WaitForChild("FlyEventS")
+									fs:Destroy()
+									fg:Destroy()
+									fp:Destroy()
+									flyevent:FireClient(game.Players[opttarg],opttarg)
+									wait()
+									fes:Destroy()
+									flyevent:Destroy()
+									hm.PlatformStand = false
+
+									char:WaitForChild("Flying").Value = false
+									if webhookenable.Value == true then
+										local content = "**"..player.Name.."** ** ("..player.UserId..")** ".." has used the command **Unfly** on: **"..game.Players[opttarg].Name.." ("..game.Players[opttarg].UserId..")**"
+										wbhkAPI.SendLog(webhookid,content)
+
+									end
+
+								end
+
+
+
+							end
+						end
+					end
+
+				elseif action == "View" then
+
+					if StaffRank ~= nil and TargRank ~= nil then
+
+						if StaffRank >= TargRank then
+
+							if opttarg then
+
+								local plr = opttarg
+								CLTEvent:FireClient(player,"View",plr)
+
+								if webhookenable.Value == true then
+									local content = "**"..player.Name.." ("..player.UserId..")** is currently **Viewing:  "..game.Players[opttarg].Name.." ("..game.Players[opttarg].UserId..")**"
+									wbhkAPI.SendLog(webhookid,content)
+
+								end
+							end
+						end
+					end
+
+				elseif action == "Set Time" then
+
+
+
+					if optextraval then
+
+						if tonumber(optextraval) then
+
+							if  optextraval>=0 and optextraval <= 24 then
+								local settime = math.floor(optextraval)
+								CLTEvent:FireAllClients("Set Time",settime)
+								if webhookenable.Value == true then
+									local content = "**"..player.Name.." ("..player.UserId..")** has set the **Time** to: **"..optextraval.."**"
+									wbhkAPI.SendLog(webhookid,content)
+
+
+								end
+
+
+
+							end
+
+						end
+					end
+
+
+
+
+
+
+				elseif action == "Set Team" then
+
+
+
+
+					if StaffRank ~= nil and TargRank ~= nil then
+
+
+
+
+						if StaffRank >= TargRank then
+							if opttarg then
+
+
+								local targetplr = game.Players[opttarg]
+
+								if Teams[optextraval] then
+									targetplr.Team = Teams[optextraval]
+
+
+									if webhookenable.Value == true then
+										local content = "**"..player.Name.." ("..player.UserId..")** has changed the **Team** for: **  "..game.Players[opttarg].Name.." ("..game.Players[opttarg].UserId..")** to **"..optextraval.."**"
+										wbhkAPI.SendLog(webhookid,content)
+
+
+									end
+								end
+
+
+							end
+						end
+
+
+
+					end
+
+
+
+
+				elseif action == "Set Server Message" then
+
+
+
+					if ActiveServMsg.Value == false then
+
+						if optextraval then
+
+							local FilteredMsg = servmsgui.FilteredMsg
+
+							local filtered,errors = pcall(function()
+								local filteredReasonResult = TS:FilterStringAsync(optextraval, player.UserId)
+								local filteredreason = filteredReasonResult:GetNonChatStringForBroadcastAsync()
+								FilteredMsg.Value = filteredreason
+							end)
+							if not filtered then
+								print("Failed to filter: "..optextraval) -- debugging
+								ADMEventV2:Disconnect()
+							end
+
+
+							local players = game:GetService("Players")
+							local igplrs = players:GetChildren()
+
+							local BGFrame = servmsgui.BGFrame
+							local SMFrame = BGFrame.SMFrame
+							local TopFrame = SMFrame.TopFrame
+
+							local MSG = SMFrame.Msg
+							local User = TopFrame.User
+
+
+
+							local Timer = servmsgui.Timer
+
+							local Duration = servmsgui.Duration
+
+							MSG.Text = FilteredMsg.Value
+
+							User.Text = "SERVER MESSAGE BY: "..player.Name.." ("..player.UserId..")"
+
+
+							for i=1,#igplrs do
+
+								local plrservmsg = servmsgui:Clone()
+
+								plrservmsg.Parent = game.Players[igplrs[i].Name]:WaitForChild("PlayerGui")
+
+								local servtime = plrservmsg:WaitForChild("Timer")
+
+								servtime.Disabled = false
+
+							end
+
+							if webhookenable.Value == true then
+								local content = "**"..player.Name.." ("..player.UserId..")** has **set the server message** to: **"..FilteredMsg.Value.."**"
+								wbhkAPI.SendLog(webhookid,content)
+
+							end
+
+							FilteredMsg.Value = ""
+
+							ActiveServMsg.Value = true
+							wait(Duration.Value)
+							ActiveServMsg.Value = false
+						end
+
+					end
+
+				elseif action == "Give Tool" then
+					if StaffRank >= TargRank then
+						if optextraval then
+							for i=1,#optextraval do
+								if SStorage.Tools:FindFirstChild(optextraval[i]) then
+									local tool = SStorage.Tools:FindFirstChild(optextraval[i])
+									local player = game.Players:WaitForChild(opttarg)
+
+									local clone = tool:Clone()
+									clone.Parent = player:WaitForChild("Backpack")
+
+									if webhookenable.Value == true then
+										local content = "**"..player.Name.." ("..player.UserId..")** has __recieved__ the tool: **"..clone.Name.."**"
+										wbhkAPI.SendLog(webhookid,content)
+									end
+								end
+							end
+						end
+					end
+				elseif action == "Remove Tool" then
+					if StaffRank >= TargRank then
+						if optextraval then
+							local plr = game.Players[opttarg]
+							local backpack = plr:WaitForChild("Backpack")
+							local char = plr.Character or plr.CharacterAdded:Wait()
+							local hum = char:WaitForChild("Humanoid")
+							for i=1,#optextraval do
+								if backpack:FindFirstChild(optextraval[i]) then
+									local tool = backpack:FindFirstChild(optextraval[i])
+									local toolname = tool.Name
+									hum:UnequipTools()
+									tool:Destroy()
+									if webhookenable.Value == true then
+										local content = toolname.." has been __removed__ from: **"..player.Name.." ("..player.UserId..")**"
+										wbhkAPI.SendLog(webhookid,content)
+									end
+								end
+							end
+						end
+					end
+				elseif action == "God" then
+					if StaffRank >= TargRank then
+						local plr = game.Players:WaitForChild(opttarg)
+						local char = plr.Character or plr.CharacterAdded:Wait()
+						local humanoid = char:WaitForChild("Humanoid")
+						humanoid.MaxHealth = math.huge
+						humanoid.Health = math.huge
+						humanoid.BreakJointsOnDeath = false
+						humanoid.RequiresNeck = false
+						if webhookenable then
+						wbhkAPI.SendLog(webhookid,"**"..plr.Name.." ("..plr.UserId..")** has been __godded__ by: **"..player.Name.." ("..player.UserId..")**")
+						end
+					end
+				elseif action == "Ungod" then
+					if StaffRank >= TargRank then
+						local plr = game.Players:WaitForChild(opttarg)
+						local char = plr.Character or plr.CharacterAdded:Wait()
+						local humanoid = char:WaitForChild("Humanoid")
+						humanoid.Health = defaulthealth
+						humanoid.MaxHealth = defaulthealth
+						humanoid.BreakJointsOnDeath = true
+						humanoid.RequiresNeck = true
+						if webhookenable then
+							wbhkAPI.SendLog(webhookid,"**"..plr.Name.." ("..plr.UserId..")** has been __ungodded__ by: **"..player.Name.." ("..player.UserId..")**")
+						end
+				    end
+			   elseif action == "Spawn Vehicle" then
+				  if optextraval then
+					if vehicles[optextraval] then
+						local ws = game.Workspace:GetChildren()
+						for i=1,#ws do
+							if CS:HasTag(game.Workspace[ws[i].Name],player.Name.."'s Vehicle") then
+								CS:RemoveTag(game.Workspace[ws[i].Name],player.Name.."'s Vehicle")
+								game.Workspace[ws[i].Name]:Destroy()
+							end
+						end
+						local clone = vehicles[optextraval]:Clone()
+						clone.Parent = game.Workspace
+						local char = player.Character or player.CharacterAdded:Wait()
+						clone:MoveTo(char.Head.Position + Vector3.new(0, 0, 5))
+						CS:AddTag(clone,player.Name.."'s Vehicle")
+					    wbhkAPI.SendLog(webhookid,"**"..player.Name.." ("..player.UserId..") has __spawned__ the following vehicle: "..optextraval)
+						
+					 end
+				  end
+			  elseif action == "Kill" then
+				  if game.Players[opttarg] then
+					local plr = game.Players[opttarg]
+					local char = plr.Character or plr.CharacterAdded:Wait()
+					local hum = char:WaitForChild("Humanoid")
+					hum.BreakJointsOnDeath = true
+					hum.RequiresNeck = true
+					hum.Health = 0
+					wbhkAPI.SendLog(webhookid,"**"..opttarg.." ("..plr.UserId..")** has been __killed__ by: **"..player.Name.." ("..player.UserId..")**")
+				  end
+			  end
+			
+		end
+		
+			
+			
+			
+	end
+		
+		
+		
+    
+	
+	
+end)
+
+
+
+
+
+
+
+--checking if values are being changed on the client without changing on the server. Anti Exploit
+VerVent.OnServerEvent:Connect(function(player,val,nckval)
+	if val == true or val == false or tonumber(val) and nckval then
+		
+		local char = player.Character or player.CharacterAdded:Wait()
+	
+		if nckval == "Rank" then
+			local r = char.Rank
+			
+			if r.Value ~= val then
+				player:Kick("Possible case of exploiting. Please contact the developer(s) if this was a faulty kick.")
+				if webhookenable.Value == true then
+					local content = "**Anti exploit has detected: "..player.Name.." ("..player.UserId..")** *EXPLOITING* and the user has been kicked. **Exploit: Attempted to change the rank value.** *NOTE: THIS MAY OF BEEN A FALSE DETECTION AS ANTI EXPLOIT IS NOT 100% ACCURATE*"
+					wbhkAPI.SendLog(webhookid,content)
+					
+				end
+				
+				
+				
+			end
+			
+		elseif nckval == "Flying" then
+			local f = char.Flying
+			if f.Value ~= val then
+				player:Kick("Possible case of exploiting. Please contact the developer(s) if this was a faulty kick.")
+				if webhookenable.Value == true then
+					local content = "**Anti exploit has detected: "..player.Name.." ("..player.UserId..")** *EXPLOITING* and the user has been kicked. **Exploit: Attempted to change the flying value.** *NOTE: THIS MAY OF BEEN A FALSE DETECTION AS ANTI EXPLOIT IS NOT 100% ACCURATE*"
+					wbhkAPI.SendLog(webhookid,content)
+
+				end
+				
+				
+				
+			end
+			
+		elseif nckval == "Freeze" then
+			local fz = char.Frozen
+			if fz.Value ~= val then
+				player:Kick("Possible case of exploiting. Please contact the developer(s) if this was a faulty kick.")
+				if webhookenable.Value == true then
+					local content = "**Anti exploit has detected: "..player.Name.." ("..player.UserId..")** *EXPLOITING* and the user has been kicked. **Exploit: Attempted to change the frozen value.** *NOTE: THIS MAY OF BEEN A FALSE DETECTION AS ANTI EXPLOIT IS NOT 100% ACCURATE*"
+					wbhkAPI.SendLog(webhookid,content)
+				end
+				
+			
+				
+			end
+		end
+	end
+	
+end)
+
+
+--unban
+
+UnbanEvent.OnServerEvent:Connect(function(player,targetplr,reason)
+	BanStore:SetAsync(targetplr,false)
+	local filtered,errors = pcall(function()
+		local filteredReasonResult = TS:FilterStringAsync(reason, player.UserId)
+		local filteredreason = filteredReasonResult:GetNonChatStringForBroadcastAsync()
+		reasonvalue.Value = filteredreason
+	end)
+	if not filtered then
+		print("Failed to filter: "..reason) -- debugging
+		UnbanEvent:Disconnect()
+	end
+	if webhookenable.Value == true then
+		local content = "**"..player.Name.." ("..player.UserId..")** has ***Unbanned*** **:"..targetplr.."(User Id). Reason: "..reason.."**"
+		wbhkAPI.SendLog(webhookid,content)
+	end
+	
+end)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- checking if player is moving while frozen. Anti Exploit
+PosEvent.OnServerEvent:Connect(function(player,lastcf,currentcf)
+	if player and lastcf and currentcf then
+		local char  = player.Character or player.CharacterAdded:Wait()
+		local frozenval = char:WaitForChild("Frozen")
+		local humrootpos = char.HumanoidRootPart.CFrame
+		
+		if frozenval.Value == true and lastcf ~= currentcf then
+			if game.Players:FindFirstChild(player) then
+				player:Kick("Possible case of exploiting. Please contact the developer(s) if this was a faulty kick.")
+				if webhookenable.Value == true then
+					local content = "**Anti exploit has detected: "..player.Name.." ("..player.UserId..")** *EXPLOITING* and the user has been kicked. **Exploit: Attempted to move while being frozen.** *NOTE: THIS MAY OF BEEN A FALSE DETECTION AS ANTI EXPLOIT IS NOT 100% ACCURATE*"
+					wbhkAPI.SendLog(webhookid,content)
+				end
+				
+				
+			end
+			
+		end
+	end
+end)
+
+
+--tools
+UpdateTools.OnServerEvent:Connect(function(player)
+	for i=1,#tools do
+		if not table.find(currtools,tools[i].Name) then
+			table.insert(currtools,tools[i].Name)
+		end
+	end
+	UpdateTools:FireClient(player,currtools)
+end)
+
+--remove tools 
+DPlrBP.OnServerEvent:Connect(function(player,targ)
+	if targ then
+		local plr = game.Players[targ]
+		local bp = plr:WaitForChild("Backpack"):GetChildren()
+		for i=1,#bp do
+			if not table.find(removetools,bp[i].Name) then
+				table.insert(removetools,bp[i].Name)
+			end
+		end
+		for i=1,#removetools do
+			if removetools[i] ~= bp[i].Name then
+				table.remove(removetools,removetools[i])
+			end
+		end 
+		DPlrBP:FireClient(player,removetools)
+	end
+end)
+
+--display vehicles
+
+DVeh.OnServerEvent:Connect(function(player)
+	local allvehs = vehicles:GetChildren()
+	local vehs = {}
+	for i=1,#allvehs do
+		if not table.find(vehs,allvehs[i].Name) then
+			table.insert(vehs,allvehs[i].Name)
+		end
+	end
+	DVeh:FireClient(player,vehs)
+end)
+
+--chat tag crap
+local function speakerAdded(speakerName)
+
+	local speaker = ChatService:GetSpeaker(speakerName)
+	local player = speaker:GetPlayer()
+	local plr = game.Players[speakerName]
+	local char = plr.Character or plr.CharacterAdded:Wait()
+	local rank = char:WaitForChild("Rank")
+	
+
+
+	if player and plr then
+		if rank.Value>0 then
+			speaker:SetExtraData("Tags",{stafftags[rank.Value]})
+			speaker:SetExtraData("ChatColor",stafftags[rank.Value].TagColor)
+		end
+	end
+
+end
+
+ChatService.SpeakerAdded:Connect(speakerAdded)
+
+for _, speaker in ipairs(ChatService:GetSpeakerList()) do
+
+	speakerAdded(speaker)
+
+end
+
+
+--tp character to original pos if frozen
+
+Players.PlayerAdded:Connect(function(player)
+	
+	print(player.Name.." has joined")
+	
+	
+	local char = player.Character or player.CharacterAdded:Wait()
+	local rank = char:WaitForChild("Rank")
+	
+	
+	
+	
+	
+	char.Humanoid.Died:Connect(function()
+		
+		if script.FrozenUsers:FindFirstChild(player.Name) then
+			
+			player.CharacterAdded:Connect(function()
+				
+				local char = player.Character or player.CharacterAdded:Wait()
+				local chrparts = char:GetChildren()
+				wait(1)
+				--print(char:WaitForChild("Humanoid").Health)
+				repeat wait() until char:WaitForChild("Humanoid").Health >=1
+				char:SetPrimaryPartCFrame(CFrame.new(script.FrozenUsers[player.Name].Value))
+				
+				
+				for i=1,#chrparts do
+					if chrparts[i]:IsA("BasePart") or chrparts[i]:IsA("UnionOperation") or chrparts[i]:IsA("MeshPart") then
+						chrparts[i].Anchored = true
+					end
+				end
+				
+				script.MiscellaneousStuff.FT:Clone().Parent = char:WaitForChild("Head")
+				char:WaitForChild("Frozen").Value = true
+			end)
+			
+
+		end
+	end)
+	
+end)
+
+--rejoin cmd
+game.Players.PlayerAdded:Connect(function(plr)
+	plr.Chatted:Connect(function(msg)
+		if rjcmdenabled then
+			if string.lower(msg) == "/rejoin" then
+				TPS:Teleport(game.PlaceId, plr)
+			end
+		end
+		
+	end)
+end)
+
+
+Players.PlayerRemoving:Connect(function(player)
+	PlrRanks:FindFirstChild(player.Name):Destroy()
+	print(player.Name.." has left")
+	
+	
+end)
+
+
+
+
+
