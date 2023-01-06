@@ -1,0 +1,71 @@
+repeat wait() until script.Parent ~= "StarterCharacterScripts"
+
+local RunServ = game:GetService("RunService")
+local plr = game.Players.LocalPlayer
+local char = plr.Character or plr.CharacterAdded:Wait()
+local charparts = char:GetChildren()
+local x = 0
+for i=1,#charparts do
+	if charparts[i]:IsA("BasePart") or charparts[i]:IsA("UnionOperation") or charparts[i]:IsA("MeshPart") then
+		x = x+1
+		
+	end
+end
+
+local hum = char:WaitForChild("Humanoid")
+
+if x>=15 then
+	script.Parent = script.Parent:WaitForChild("RightLowerArm")
+elseif x<= 7 then
+	script.Parent = script.Parent:WaitForChild("Right Arm")
+end
+ 
+
+
+local rank = script.Parent.Parent:WaitForChild("Rank") 
+
+local fly = script.Parent.Parent:WaitForChild("Flying")
+
+local frozen = script.Parent.Parent:WaitForChild("Frozen")
+
+local RS = game:GetService("ReplicatedStorage"):WaitForChild("SRAdminEvents")
+local vervent = RS:WaitForChild("VerVent")
+local posvent = RS:WaitForChild("PosEvent")
+
+
+
+
+
+rank.Changed:Connect(function()
+	local rankval = rank.Value
+	vervent:FireServer(rankval,"Rank")
+end)
+
+fly.Changed:Connect(function()
+	local flyval = fly.Value
+	vervent:FireServer(flyval,"Flying")
+end)
+
+frozen.Changed:Connect(function()
+	local frozenval = frozen.Value
+    vervent:FireServer(frozenval,"Freeze")
+end)
+
+
+RunServ.RenderStepped:Connect(function()
+	local humroot = script.Parent.Parent:WaitForChild("HumanoidRootPart")
+	if frozen.Value == true then
+		
+		local lastcf = humroot.CFrame
+		hum.PlatformStand = true
+		wait(1)
+		local currentcf = humroot.CFrame
+		posvent:FireServer(lastcf,currentcf)
+		
+	end
+	
+end)
+
+
+
+
