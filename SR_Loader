@@ -1,0 +1,393 @@
+local RS = game:GetService("ReplicatedStorage")
+local SRAdminEvents = RS.SRAdminEvents
+
+
+
+local config = require(script.Config)
+local groupenab = config.groupEnabled
+-- group stuff
+local groupid = config.groupid
+local modrank = config.modrank
+local adminrank = config.adminrank
+local hadminrank = config.hadminrank
+local ownerrank = config.ownerrank
+-- ranks
+local mod = config.mods
+local admin = config.admins
+local headadmin = config.headadmin
+local owner = config.owner
+
+
+--backgrounds
+
+local CPBI = config.CustomPanelBGImage
+local HomeSBGID = config.HSBackgroundID
+local HomeSModBGID = config.HSModButtonBackGroundID
+local HomeSMiscBGID = config.HSMiscButtonBGID
+local ModSBGID = config.ModBGID
+local MiscSBGID = config.MiscBGID
+
+
+
+--cooldowns
+local cmdcooldown = config.commandcooldown
+local servmsgcooldown = config.servmsgcooldown
+
+
+
+--cmd perms
+
+bringperm = config.bringperm;
+muteperm = config.muteperm
+warnperm = config.warnperm;
+kickperm = config.kickperm;
+banperm = config.banperm;
+shutdownperm = config.shutdownperm
+
+flyperm = config.flyperm;
+settimeperm = config.settimeperm;
+viewperm = config.viewperm;
+freezeperm = config.freezeperm;
+teamperm = config.teamperm;
+servmsgperm = config.servmsgperm;
+settoolperm = config.givetoolperm;
+godmodeperm = config.godmodeperm;
+spawnvehperm = config.spawnvehperm;
+killperm = config.killperm;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local perms = {
+	[1] = {"bringp",bringperm};
+	[2] = {"mutep",muteperm};
+	[3] = {"warnp",warnperm};
+	[4] = {"kickp",kickperm};
+	[5] = {"banp",banperm};
+	[6] = {"shutdownp",shutdownperm};
+	
+	[7] = {"flyp",flyperm};
+	[8] = {"settimep",settimeperm};
+	[9] = {"viewp",viewperm};
+	[10] = {"freezep",freezeperm};
+	[11] = {"teamp",teamperm};
+	[12] = {"servmsgp",servmsgperm};
+	[13] = {"settoolp",settoolperm};
+	[14] = {"godp",godmodeperm};
+	[15] = {"spawnvehp",spawnvehperm};
+	[16] = {"killp",killperm};
+	
+}
+
+
+
+--banlist
+local banlist = config.banlist
+
+--Datastore stuff
+local DDS = game:GetService("DataStoreService")
+local bandatastore = DDS:GetDataStore(game.PlaceId,"Banned_Users")
+local staffdatastore = DDS:GetDataStore(game.PlaceId,"Staff")
+
+
+
+--admin panel
+local gui = script:WaitForChild("Panel")
+local BGFrame = gui:WaitForChild("BGFrame")
+BGFrame.Cooldown.Value = cmdcooldown
+local HS = BGFrame:WaitForChild("HomeScreen")
+local ModS = BGFrame:WaitForChild("Moderation")
+local MiscS = BGFrame:WaitForChild("Miscellaneous")
+
+--Background Values
+local HSBGID = HS:WaitForChild("HSBGID")
+local HSModBGID = HS:WaitForChild("HSModBGID")
+local HSMiscBGID = HS:WaitForChild("HSMiscBGID")
+
+local ModBGID = ModS:WaitForChild("ModBGID")
+local MiscBGID = MiscS:WaitForChild("MiscBGID")
+
+
+if CPBI == true then
+	
+	HSBGID.Value = HomeSBGID
+	HSModBGID.Value = HomeSModBGID
+	HSMiscBGID.Value = HomeSMiscBGID
+	
+	ModBGID.Value = ModSBGID
+	MiscBGID.Value = MiscSBGID
+	
+	
+end
+
+
+
+
+--setting up cmd perms in panel
+
+for i,v in ipairs(perms) do
+	
+	
+	local val = Instance.new("NumberValue")
+	val.Parent = gui
+	val.Name = v[1]
+	val.Value = v[2]
+	
+
+
+end
+
+-- webhook stuff
+local webhookenabled = config.webhoookenabled
+local webhookid = config.webhookid
+
+--framework parent and values
+
+local framework = script["SR_FrameWork"]
+
+framework.Parent = script.Parent
+local frameworkVals  = framework:WaitForChild("FrameworkVals")
+local APIs = framework:WaitForChild("API's")
+framework.Disabled = false
+frameworkVals.WebhookIdServ.Value = webhookid
+local frameworkUIs = framework:WaitForChild("UIs")
+local servmsgui = frameworkUIs.ServerMessage
+local servmsgtime = servmsgui.Duration
+servmsgtime.Value = servmsgcooldown
+
+if webhookenabled then
+	frameworkVals.WebhookEnable.Value = true
+end
+
+
+
+
+
+
+--Trello Stuff
+
+
+
+
+
+
+TrelloEnabled = config.TrelloEnabled
+
+
+
+TrelloToken = config.TrelloToken
+
+TrelloBoardName = config.TrelloBoardName
+
+TrelloBanListName = config.TrelloBanListName
+
+TrelloAPIKey = config.TrelloAPIKey
+
+TrelloTokenVal = frameworkVals.TrelloToken
+
+TrelloBoardNameVal = frameworkVals.TrelloBoardName
+
+TrelloBanListNameVal = frameworkVals.TrelloBanListName
+
+TrelloAPIKeyVal = frameworkVals.TrelloAPIKey
+
+
+if TrelloEnabled == true then
+	TrelloTokenVal.Value = TrelloToken
+	TrelloBoardNameVal.Value = TrelloBoardName
+	TrelloBanListNameVal.Value = TrelloBanListName
+	TrelloAPIKeyVal.Value = TrelloAPIKey
+end
+
+local APIs = framework["API's"]
+local TrelloApi = require(APIs.TrelloAPI)
+
+local modlist = config.TrelloModsListName
+local adminlist = config.TrelloAdminListName
+local headadminlist = config.TrelloHeadAdminListName
+local ownerlist = config.TrelloOwnersListName
+
+
+
+
+-- player service
+
+local players = game:GetService("Players")
+
+warn("Successfully loaded values & framework. Enjoy! - Questionable Existance#2811 / Scripter_Rickster")
+
+players.PlayerAdded:Connect(function(player)
+	
+	
+	
+	
+	if table.find(banlist,player.UserId) or table.find(banlist,player.Name) then
+		player:Kick("You have been banned from the experience")
+		
+	elseif bandatastore:GetAsync(player.UserId) then
+		player:Kick("You have been banned from this experience")
+		
+	elseif TrelloEnabled == true then
+		
+
+		
+		local BanBoardID = TrelloApi:GetBoardID(TrelloBoardNameVal.Value)
+		
+		local BanListID = TrelloApi:GetListID(TrelloBanListNameVal.Value,BanBoardID)
+		local BanCards = TrelloApi:GetCardsInList(BanListID)
+		for _, i in pairs(BanCards) do
+			if string.find(i.name,player.UserId) or string.find(i.name,player.Name) then
+				player:Kick("You have been banned from this experience")
+			end
+		end
+	end
+	
+	
+	
+	local plrchar = player.Character or player.CharacterAdded:Wait()
+	local plrrank = plrchar:WaitForChild("Rank")
+	
+	local servplrrank = Instance.new("IntValue")
+	servplrrank.Parent = script.Parent:WaitForChild("SR_FrameWork").PlayerRanks
+	servplrrank.Name = player.Name
+	
+	if groupenab then
+		
+		if player:GetRankInGroup(groupid) == modrank then
+			
+			
+			plrrank.Value = 1
+			servplrrank.Value = 1
+			
+			
+			   
+			gui:Clone().Parent = player.PlayerGui
+		elseif player:GetRankInGroup(groupid) == adminrank then
+			plrrank.Value = 2
+			servplrrank.Value = 2
+		
+			 
+			gui:Clone().Parent = player.PlayerGui
+			
+		elseif player:GetRankInGroup(groupid) == hadminrank then
+			
+			
+			plrrank.Value = 3
+			servplrrank.Value = 3
+			
+			   
+			gui:Clone().Parent = player.PlayerGui
+			
+		elseif player:GetRankInGroup(groupid) == ownerrank then
+			
+			  
+			plrrank.Value = 4
+			servplrrank.Value = 4
+			 
+			    
+			gui:Clone().Parent = player.PlayerGui
+		end
+		
+		
+		
+	elseif player.UserId == game.CreatorId then
+		
+		plrrank.Value = 4
+		servplrrank.Value = 4
+		
+		gui:Clone().Parent = player.PlayerGui
+		
+	elseif TrelloEnabled then
+		local temprank = 0;
+		local board = TrelloApi:GetBoardID(TrelloBoardNameVal.Value)
+		local modslist = TrelloApi:GetLists(modlist,board)
+		local modcards = TrelloApi:GetCardsInList(modslist)
+		local adminslist = TrelloApi:GetLists(adminlist,board)
+		local admincards = TrelloApi:GetCardsInList(adminslist)
+		local headadminslist = TrelloApi:GetLists(headadminlist,board)
+		local headadmincards = TrelloApi:GetCardsInList(headadminslist)
+		local ownerslist = TrelloApi:GetLists(ownerlist,board)
+		local ownercards = TrelloApi:GetCardsInList(ownerslist)
+		
+		for _, i in pairs(modcards) do
+			if string.find(i.name,player.UserId) or string.find(i.name,player.Name) then
+				temprank = 1
+			end
+		end
+		for _, i in pairs(admincards) do
+			if string.find(i.name,player.UserId) or string.find(i.name,player.Name) then
+				temprank = 2
+			end
+		end
+		for _, i in pairs(headadmincards) do
+			if string.find(i.name,player.UserId) or string.find(i.name,player.Name) then
+				temprank = 3
+			end
+		end
+		for _, i in pairs(ownercards) do
+			if string.find(i.name,player.UserId) or string.find(i.name,player.Name) then
+				temprank = 4
+			end
+		end
+		
+		plrrank.Value = temprank
+		servplrrank.Value = temprank
+		gui:Clone().Parent = player.PlayerGui
+		
+			
+		
+	else
+		if table.find(mod,player.UserId) or table.find(mod,player.Name) then
+			
+			plrrank.Value = 1
+			servplrrank.Value = 1
+			gui:Clone().Parent = player.PlayerGui
+			
+		elseif table.find(admin,player.UserId) or table.find(admin,player.Name) then
+		
+			plrrank.Value = 2
+			servplrrank.Value = 2
+			
+		
+			
+			gui:Clone().Parent = player.PlayerGui
+		elseif table.find(headadmin,player.UserId) or table.find(headadmin,player.Name) then
+		
+			plrrank.Value = 3
+			servplrrank.Value = 3
+			
+		
+			
+			gui:Clone().Parent = player.PlayerGui
+		elseif table.find(owner,player.UserId) or table.find(owner,player.Name) then
+			
+		
+			plrrank.Value = 4
+			servplrrank.Value = 4
+			
+		
+			
+			gui:Clone().Parent = player.PlayerGui
+			
+			
+		end
+		
+		
+		
+			
+		
+	end
+	
+	
+end)
+
