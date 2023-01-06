@@ -1,0 +1,53 @@
+local lighting = game:GetService("Lighting")
+
+local RS = game:GetService("ReplicatedStorage"):WaitForChild("SRAdminEvents")
+
+local CLTEvent = RS:WaitForChild("CLTEvent")
+local pltevent = RS:WaitForChild("PltEvent")
+
+local camera = game.Workspace.CurrentCamera
+
+
+CLTEvent.OnClientEvent:Connect(function(action,optextraval)
+	print(action,optextraval)
+	if action == "Set Time" then
+		if optextraval then
+			lighting.ClockTime = optextraval
+		end
+		
+		
+	elseif action == "View" then
+		
+		if optextraval then
+			
+			local targplr = game.Players[optextraval]
+			local char = targplr.Character or targplr.CharacterAdded:Wait()
+			--local hum = char:WaitForChild("HumanoidRootPart")
+
+			camera.CameraSubject = char
+			
+		end
+		
+	end
+	
+	
+end)
+
+
+
+
+
+
+pltevent.OnClientEvent:Connect(function(target,cmd)
+	
+	if target and cmd then
+		local targplr = game.Players[target]
+		local char = targplr.Character or targplr.CharacterAdded:Wait()
+		local hum = char:WaitForChild("Humanoid")
+		if hum  and cmd == "Stand" then
+			hum.PlatformStand = false
+		elseif hum and cmd == "PlatSt" then
+			hum.PlatformStand = true
+		end
+	end
+end)
