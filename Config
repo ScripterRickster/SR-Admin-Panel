@@ -1,0 +1,136 @@
+local config = {
+	groupEnabled = false; --If this is set to false, then you dont need to fill out any of the stuff below related to group stuff
+	groupid = 0 ;
+	modrank = 0;
+	adminrank = 0;
+	hadminrank = 0;
+	ownerrank = 0;
+	
+	--webhook stuff
+	webhoookenabled = false;
+	webhookid = ""; -- Make sure to input a valid discord webhook, otherwise the admin panel will not be able to successfully send the webhooks, and may cause the admin panel to break.  Ex: "https://discord.com/api/webhooks/1033725234232184852/Hscgw7r9A4iDWGfr6aGorHo2B2759UOD2YM0c89W_kTzjTW-8BWiO7Sa-uwngyAHDIuL" [if u try using the webhook, then ur dumb (no offence meant)]
+	-- THIS IS IF THE ADMIN SYSTEM ISNT FOR A GROUP. PUT PLAYER'S ID (RECOMMENDED) OR PLAYER'S USERNAME (NOT RECOMMENDED). FOR PLAYER'S USERNAME, MAKE SURE USERNAME IS IN QUOTES, AND A COMMA IS AFTER THE USERNAME, FOR PLAYER ID, JUST SIMPLY PUT THE USER'S ID AND A COMMA AFTER IT.
+	mods = {
+		
+	};	
+	
+	admins = {
+		
+		
+	};
+	
+	headadmin = {
+		
+		
+	};
+	
+	owner = {
+		--"exampleusername",
+		--6969696969,
+		
+	};
+	
+	--Staff Chat Tags
+	chattagenabled = true;
+	stafftags = {
+		[1] = {TagText = "Mod", TagColor = Color3.new(0.819608, 0.509804, 0.352941)},
+		[2] = {TagText = "Admin", TagColor = Color3.new(0.0392157, 1, 0.152941)},
+		[3] = {TagText = "Head Admin", TagColor = Color3.new(1, 0, 0)},
+		[4] = {TagText = "Owner", TagColor = Color3.new(1, 0.960784, 0.537255)}
+	};
+	
+	
+	
+	banlist = {
+		--"exampleusername",
+		--6969696969,
+		
+	};
+	
+	-- whether the rank changed in-game is permanent or temporary
+	permrankchanges = false; -- whether this is enabled or not
+	
+	
+	--Trello Stuff
+	
+	TrelloEnabled = false; -- whether trello is enabled or not
+	TrelloAPIKey = ""; -- API Key (You can get this from your Trello Account)
+	TrelloToken = ""; -- Token Key (You can get this from your Trello Account)
+	TrelloBoardName = ""; -- Name of the board that you store your game data in
+	TrelloBanListName = ""; -- Name of the list that banned users are stored in that is within that board
+	TrelloModsListName = ""; --Name of the list that you store mods in
+	TrelloAdminListName = ""; --Name of the list that you store admins in
+	TrelloHeadAdminListName = ""; --Name of the list that you store head admins in
+	TrelloOwnersListName = ""; --Name of the list that you store owners in
+	
+	
+	
+	--Panel Background
+	CustomPanelBGImage = false;  --false = Disabled [It would be the default theme],  true = Enabled [You would put the id of the roblox image asset id in for each one below]. If this is true, make sure to replace the "0" with the asset number.
+	HSBackgroundID = 0; --Homescreen Panel Background
+	HSModButtonBackGroundID = 0; --Homescreen Moderation Button
+	HSMiscButtonBGID = 0; --Homescreen Miscellaneous Button
+	ModBGID = 0; --Moderaiton Panel Background
+	MiscBGID = 0; -- Miscellaneous Panel Background
+	
+	
+	
+	
+	-- rejoin cmd
+	rejoincmdenabled = true; -- whether rejoin cmd is enabled / disabled
+	
+	
+	--default health
+	defaulthealth = 100;
+	
+	
+	
+	--[[
+	
+	THIS IS FOR COMMAND PERMS. 
+	
+	1 = MOD
+	
+	2 = ADMIN
+	
+	3 = HEAD ADMIN
+	
+	4 = OWNER
+	
+	
+	]]
+	
+	--cmd cooldown
+	commandcooldown = 1; --The number should be in seconds. Ex: For 5 seconds, you would put 5. This is to prevent abuse from occuring. 
+	
+	--server message cooldown
+	
+	servmsgcooldown = 10; --The number should be in seconds. Ex: For 10 seconds, you would put 10. This is for how long the server message lasts
+	
+	
+	
+	--moderation cmd perms
+	bringperm = 1;
+	muteperm = 1;
+	warnperm = 1;
+	kickperm = 1;
+	banperm = 2;
+	shutdownperm = 2;
+	setrankperm = 3;
+	
+	--misc cmd perms
+	flyperm = 1;
+	settimeperm = 1;
+	viewperm = 1;
+	freezeperm = 1;
+	teamperm = 1;
+	servmsgperm = 2;
+	givetoolperm = 3;
+	godmodeperm = 2;
+	spawnvehperm = 2;
+	killperm = 1;
+	
+	
+}
+
+return config
