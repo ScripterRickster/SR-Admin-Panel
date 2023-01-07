@@ -1,0 +1,32 @@
+local ServerScriptService = game:GetService("ServerScriptService")
+
+local ChatService = require(ServerScriptService:WaitForChild("ChatServiceRunner"):WaitForChild("ChatService"))
+local config = require(ServerScriptService:WaitForChild("SR_Loader"):WaitForChild("Config"))
+local stafftags = config.stafftags
+
+local chattagapi = {}
+
+
+function chattagapi.SetTag(speakerName)
+	local speaker = ChatService:GetSpeaker(speakerName)
+	local player = speaker:GetPlayer()
+	local plr = game.Players[speakerName]
+	local char = plr.Character or plr.CharacterAdded:Wait()
+	local rank = char:WaitForChild("Rank")
+	
+
+
+
+	if player and plr then
+		if rank.Value>0 then
+			speaker:SetExtraData("Tags",{stafftags[rank.Value]})
+			speaker:SetExtraData("ChatColor",stafftags[rank.Value].TagColor)
+		else
+			speaker:SetExtraData("Tags")
+			speaker:SetExtraData("ChatColor")
+		end
+		
+	end
+end
+
+return chattagapi
