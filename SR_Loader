@@ -1,6 +1,8 @@
+
+
+local SSS = game:GetService("ServerScriptService")
 local RS = game:GetService("ReplicatedStorage")
 local SRAdminEvents = RS.SRAdminEvents
-
 
 
 local config = require(script.Config)
@@ -34,6 +36,10 @@ local cmdcooldown = config.commandcooldown
 local servmsgcooldown = config.servmsgcooldown
 
 
+--perm rank changes
+local permrankchanges = config.permrankchanges
+
+
 
 --cmd perms
 
@@ -54,6 +60,7 @@ settoolperm = config.givetoolperm;
 godmodeperm = config.godmodeperm;
 spawnvehperm = config.spawnvehperm;
 killperm = config.killperm;
+setrankperm = config.setrankperm
 
 
 
@@ -86,6 +93,8 @@ local perms = {
 	[14] = {"godp",godmodeperm};
 	[15] = {"spawnvehp",spawnvehperm};
 	[16] = {"killp",killperm};
+	[17] = {"setrankp",setrankperm};
+	
 	
 }
 
@@ -157,7 +166,7 @@ local framework = script["SR_FrameWork"]
 
 framework.Parent = script.Parent
 local frameworkVals  = framework:WaitForChild("FrameworkVals")
-local APIs = framework:WaitForChild("API's")
+
 framework.Disabled = false
 frameworkVals.WebhookIdServ.Value = webhookid
 local frameworkUIs = framework:WaitForChild("UIs")
@@ -168,6 +177,7 @@ servmsgtime.Value = servmsgcooldown
 if webhookenabled then
 	frameworkVals.WebhookEnable.Value = true
 end
+
 
 
 
@@ -218,16 +228,22 @@ local headadminlist = config.TrelloHeadAdminListName
 local ownerlist = config.TrelloOwnersListName
 
 
-
+print(ownerlist)
 
 -- player service
 
 local players = game:GetService("Players")
 
-warn("Successfully loaded values & framework. Enjoy! - Questionable Existance#2811 / Scripter_Rickster")
+
+warn("Successfully loaded values & framework. Enjoy! - Questionable Existance#9242 / Scripter_Rickster")
 
 players.PlayerAdded:Connect(function(player)
 	
+	local framework2 = script.Parent:WaitForChild("SR_FrameWork")
+	local API = framework2["API's"]
+	local chattagAPI = require(API.ChatTagAPI)
+	local ChatService = require(SSS:WaitForChild("ChatServiceRunner"):WaitForChild("ChatService"))
+
 	
 	
 	
@@ -261,7 +277,9 @@ players.PlayerAdded:Connect(function(player)
 	servplrrank.Parent = script.Parent:WaitForChild("SR_FrameWork").PlayerRanks
 	servplrrank.Name = player.Name
 	
-	if groupenab then
+	local checked = false
+	
+	if groupenab and checked == false then
 		
 		if player:GetRankInGroup(groupid) == modrank then
 			
@@ -297,17 +315,20 @@ players.PlayerAdded:Connect(function(player)
 			    
 			gui:Clone().Parent = player.PlayerGui
 		end
+		checked = true
 		
 		
 		
-	elseif player.UserId == game.CreatorId then
+		
+	elseif player.UserId == game.CreatorId and checked == false then
 		
 		plrrank.Value = 4
 		servplrrank.Value = 4
 		
 		gui:Clone().Parent = player.PlayerGui
+		checked = true
 		
-	elseif TrelloEnabled then
+	elseif TrelloEnabled and checked == false then
 		local temprank = 0;
 		local board = TrelloApi:GetBoardID(TrelloBoardNameVal.Value)
 		local modslist = TrelloApi:GetLists(modlist,board)
@@ -344,9 +365,24 @@ players.PlayerAdded:Connect(function(player)
 		servplrrank.Value = temprank
 		gui:Clone().Parent = player.PlayerGui
 		
-			
+		checked = true
 		
-	else
+	elseif permrankchanges and checked == false then
+		local s,rank = pcall(function()
+			return staffdatastore:GetAsync(player.UserId)
+		end)
+		
+		if s then
+			plrrank.Value = rank
+			servplrrank.Value = rank
+			gui:Clone().Parent = player.PlayerGui
+		else
+			print("Admin Panel Encountered An Unknown Error.")
+			player:Kick("Failed to load the rank for the user. Please Rejoin.")
+		end
+		checked = true
+		
+	elseif checked == false then
 		if table.find(mod,player.UserId) or table.find(mod,player.Name) then
 			
 			plrrank.Value = 1
@@ -381,12 +417,13 @@ players.PlayerAdded:Connect(function(player)
 			
 			
 		end
-		
-		
-		
-			
+		checked = true
 		
 	end
+	--sets chat tag
+	ChatService.SpeakerAdded:Connect(function(speakerName)
+		chattagAPI.SetTag(speakerName)
+	end)
 	
 	
 end)
