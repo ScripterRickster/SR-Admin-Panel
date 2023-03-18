@@ -8,12 +8,18 @@ local RS = game:GetService("ReplicatedStorage").SRAdminEvents
 
 local CS = game:GetService("CollectionService")
 
+local Lighting = game:GetService("Lighting")
+
+local Debris = game:GetService("Debris")
+
 
 local frameworkVals = script.FrameworkVals
 
 local APIs = script["API's"]
 
 local wbhkAPI = require(APIs.WebhookAPI)
+
+local ChatTagAPI = require(APIs.ChatTagAPI)
 
 
 local servwebhook = frameworkVals.WebhookIdServ
@@ -42,6 +48,8 @@ local MiscStuff = script.MiscellaneousStuff
 
 
 local BanStore = DDS:GetDataStore(game.PlaceId,"Banned_Users")
+
+local StaffStore = DDS:GetDataStore(game.PlaceId,"Staff")
 
 local TS = game:GetService("TextService")
 
@@ -76,6 +84,7 @@ local rjcmdenabled =  config.rejoincmdenabled
 local SCTenabled = config.chattagenabled
 local stafftags = config.stafftags
 local defaulthealth = config.defaulthealth
+local permrankchanges = config.permrankchanges
 local tools = SStorage:WaitForChild("Tools"):GetChildren()
 local vehicles = SStorage.Vehicles
 
@@ -87,24 +96,27 @@ local removetools = {}
 
 ADMEventV2.OnServerEvent:Connect(function(player,opttarg,opttargid,action,optreason,optextraval,Type)
 	if player and action then
-			StaffRank = PlrRanks[player.Name].Value
+		StaffRank = PlrRanks[player.Name].Value
+		if opttarg then
 			TargRank = PlrRanks[opttarg].Value
+		end
+		
 
-			if Type == "Moderation" then
+		if Type == "Moderation" then
 
-				local filtered,errors = pcall(function()
-					local filteredReasonResult = TS:FilterStringAsync(optreason, player.UserId)
-					local filteredreason = filteredReasonResult:GetNonChatStringForBroadcastAsync()
-					reasonvalue.Value = filteredreason
-				end)
-				if not filtered then
-					print("Failed to filter: "..optreason) -- debugging
-					ADMEventV2:Disconnect()
-				end
-
-
+			local filtered,errors = pcall(function()
+				local filteredReasonResult = TS:FilterStringAsync(optreason, player.UserId)
+				local filteredreason = filteredReasonResult:GetNonChatStringForBroadcastAsync()
+				reasonvalue.Value = filteredreason
+			end)
+			if not filtered then
+				print("Failed to filter: "..optreason) -- debugging
+				ADMEventV2:Disconnect()
+		    end
 
 
+			
+			if TargRank and StaffRank then
 				if StaffRank > TargRank then
 					if action == "Mute" then
 
@@ -230,13 +242,12 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,opttargid,action,optrea
 						end
 
 
+
+
+
 					end
-
-
-
-
-
-				end
+			    end
+			end
 
 
 
@@ -495,13 +506,12 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,opttargid,action,optrea
 						if tonumber(optextraval) then
 
 							if  optextraval>=0 and optextraval <= 24 then
-								local settime = math.floor(optextraval)
+							    local settime = math.floor(optextraval)
+							    Lighting.ClockTime = settime
 								CLTEvent:FireAllClients("Set Time",settime)
 								if webhookenable.Value == true then
 									local content = "**"..player.Name.." ("..player.UserId..")** has set the **Time** to: **"..optextraval.."**"
 									wbhkAPI.SendLog(webhookid,content)
-
-
 								end
 
 
@@ -635,12 +645,13 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,opttargid,action,optrea
 									local clone = tool:Clone()
 									clone.Parent = player:WaitForChild("Backpack")
 
-									if webhookenable.Value == true then
-										local content = "**"..player.Name.." ("..player.UserId..")** has __recieved__ the tool: **"..clone.Name.."**"
-										wbhkAPI.SendLog(webhookid,content)
-									end
+									
 								end
-							end
+						   end
+						  if webhookenable.Value == true then
+							  local content = "**"..player.Name.." ("..player.UserId..")** has __recieved__ the following tools: **"..table.concat(optextraval, ",").."**"
+							  wbhkAPI.SendLog(webhookid,content)
+						  end
 						end
 					end
 				elseif action == "Remove Tool" then
@@ -656,12 +667,12 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,opttargid,action,optrea
 									local toolname = tool.Name
 									hum:UnequipTools()
 									tool:Destroy()
-									if webhookenable.Value == true then
-										local content = toolname.." has been __removed__ from: **"..player.Name.." ("..player.UserId..")**"
-										wbhkAPI.SendLog(webhookid,content)
-									end
 								end
-							end
+						    end
+						    if webhookenable.Value == true then
+							  local content = "The following tools that have been __removed__ from the player **"..player.Name.." ("..player.UserId..")** are: **"..table.concat(optextraval, ",").."**"
+							  wbhkAPI.SendLog(webhookid,content)
+						   end
 						end
 					end
 				elseif action == "God" then
@@ -705,7 +716,7 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,opttargid,action,optrea
 						local char = player.Character or player.CharacterAdded:Wait()
 						clone:MoveTo(char.Head.Position + Vector3.new(0, 0, 5))
 						CS:AddTag(clone,player.Name.."'s Vehicle")
-					    wbhkAPI.SendLog(webhookid,"**"..player.Name.." ("..player.UserId..") has __spawned__ the following vehicle: "..optextraval)
+					    wbhkAPI.SendLog(webhookid,"**"..player.Name.." ("..player.UserId..")** has __spawned__ the following vehicle: "..optextraval)
 						
 					 end
 				  end
@@ -718,7 +729,60 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,opttargid,action,optrea
 					hum.RequiresNeck = true
 					hum.Health = 0
 					wbhkAPI.SendLog(webhookid,"**"..opttarg.." ("..plr.UserId..")** has been __killed__ by: **"..player.Name.." ("..player.UserId..")**")
-				  end
+				end
+				
+			elseif action == "Set Rank" then
+				if optextraval then
+					optextraval = tonumber(optextraval)
+					if game.Players[opttarg] and optextraval>=0 then
+						if StaffRank > TargRank and optextraval < StaffRank then
+							local plr = game.Players[opttarg]
+							local char = plr.Character or plr.CharacterAdded:Wait()
+							local rank = char:WaitForChild('Rank')
+							local prevrank = rank.Value
+
+							rank.Value = optextraval
+
+							if permrankchanges then
+								local s,err = pcall(function()
+									StaffStore:SetAsync(plr.UserId,optextraval)
+								end)
+
+								if not s then
+									print("The admin panel encountered an error: "..err)
+								end
+							end
+							local panel = script.Parent:WaitForChild("SR_Loader"):WaitForChild("Panel")
+							
+							if rank.Value>=1 then
+								local plrgui = plr.PlayerGui:GetChildren()
+								for i=1,#plrgui do
+									if plrgui[i].Name == "Panel" then
+										plrgui[i]:Destroy()
+										Debris:AddItem(plrgui[i],0)
+									end
+								end
+								local panel2 = panel:Clone()
+								panel2.Parent = plr:WaitForChild("PlayerGui")
+							elseif plr:WaitForChild("PlayerGui"):FindFirstChild(panel.Name) and rank.Value==0 then
+								local plrgui = plr.PlayerGui:GetChildren()
+								for i=1,#plrgui do
+									if plrgui[i].Name == "Panel" then
+										plrgui[i]:Destroy()
+										Debris:AddItem(plrgui[i],0)
+									end
+								end
+							end
+							ChatTagAPI.SetTag(opttarg)
+							if webhookenable then
+								local content = "**"..player.Name.." ("..player.UserId..")** has __changed__ **"..opttarg.." ("..plr.UserId..")'s** rank from "..prevrank.." to "..optextraval
+								wbhkAPI.SendLog(webhookid,content)
+							end
+						end
+				   end
+					
+				end
+				
 			  end
 			
 		end
@@ -892,33 +956,7 @@ DVeh.OnServerEvent:Connect(function(player)
 	DVeh:FireClient(player,vehs)
 end)
 
---chat tag crap
-local function speakerAdded(speakerName)
 
-	local speaker = ChatService:GetSpeaker(speakerName)
-	local player = speaker:GetPlayer()
-	local plr = game.Players[speakerName]
-	local char = plr.Character or plr.CharacterAdded:Wait()
-	local rank = char:WaitForChild("Rank")
-	
-
-
-	if player and plr then
-		if rank.Value>0 then
-			speaker:SetExtraData("Tags",{stafftags[rank.Value]})
-			speaker:SetExtraData("ChatColor",stafftags[rank.Value].TagColor)
-		end
-	end
-
-end
-
-ChatService.SpeakerAdded:Connect(speakerAdded)
-
-for _, speaker in ipairs(ChatService:GetSpeakerList()) do
-
-	speakerAdded(speaker)
-
-end
 
 
 --tp character to original pos if frozen
@@ -965,6 +1003,8 @@ Players.PlayerAdded:Connect(function(player)
 	
 end)
 
+
+
 --rejoin cmd
 game.Players.PlayerAdded:Connect(function(plr)
 	plr.Chatted:Connect(function(msg)
@@ -981,11 +1021,4 @@ end)
 Players.PlayerRemoving:Connect(function(player)
 	PlrRanks:FindFirstChild(player.Name):Destroy()
 	print(player.Name.." has left")
-	
-	
 end)
-
-
-
-
-
