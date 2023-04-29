@@ -92,13 +92,6 @@ local currtools = {}
 local removetools = {}
 
 
--- Some other random variables I was too lazy to classify
-
-
-
-
---DEVELOPER NOTE: PLEASE DO NOT TOUCH CODE THAT IS GREY. DOING SO MAY RESULT IN SEVERAL ERRORS BEING PRODUCED
-
 ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optextraval)
 	if player and action then
 		
