@@ -2,6 +2,12 @@
 
 local SSS = game:GetService("ServerScriptService")
 local RS = game:GetService("ReplicatedStorage")
+
+local TS = game:GetService("TextChatService")
+
+
+
+
 local SRAdminEvents = RS.SRAdminEvents
 
 
@@ -20,14 +26,6 @@ local headadmin = config.headadmin
 local owner = config.owner
 
 
---backgrounds
-
-local CPBI = config.CustomPanelBGImage
-local HomeSBGID = config.HSBackgroundID
-local HomeSModBGID = config.HSModButtonBackGroundID
-local HomeSMiscBGID = config.HSMiscButtonBGID
-local ModSBGID = config.ModBGID
-local MiscSBGID = config.MiscBGID
 
 
 
@@ -41,63 +39,6 @@ local permrankchanges = config.permrankchanges
 
 
 
---cmd perms
-
-bringperm = config.bringperm;
-muteperm = config.muteperm
-warnperm = config.warnperm;
-kickperm = config.kickperm;
-banperm = config.banperm;
-shutdownperm = config.shutdownperm
-
-flyperm = config.flyperm;
-settimeperm = config.settimeperm;
-viewperm = config.viewperm;
-freezeperm = config.freezeperm;
-teamperm = config.teamperm;
-servmsgperm = config.servmsgperm;
-settoolperm = config.givetoolperm;
-godmodeperm = config.godmodeperm;
-spawnvehperm = config.spawnvehperm;
-killperm = config.killperm;
-setrankperm = config.setrankperm
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-local perms = {
-	[1] = {"bringp",bringperm};
-	[2] = {"mutep",muteperm};
-	[3] = {"warnp",warnperm};
-	[4] = {"kickp",kickperm};
-	[5] = {"banp",banperm};
-	[6] = {"shutdownp",shutdownperm};
-	
-	[7] = {"flyp",flyperm};
-	[8] = {"settimep",settimeperm};
-	[9] = {"viewp",viewperm};
-	[10] = {"freezep",freezeperm};
-	[11] = {"teamp",teamperm};
-	[12] = {"servmsgp",servmsgperm};
-	[13] = {"settoolp",settoolperm};
-	[14] = {"godp",godmodeperm};
-	[15] = {"spawnvehp",spawnvehperm};
-	[16] = {"killp",killperm};
-	[17] = {"setrankp",setrankperm};
-	
-	
-}
-
 
 
 --banlist
@@ -110,75 +51,48 @@ local staffdatastore = DDS:GetDataStore(game.PlaceId,"Staff")
 
 
 
---admin panel
-local gui = script:WaitForChild("Panel")
-local BGFrame = gui:WaitForChild("BGFrame")
-BGFrame.Cooldown.Value = cmdcooldown
-local HS = BGFrame:WaitForChild("HomeScreen")
-local ModS = BGFrame:WaitForChild("Moderation")
-local MiscS = BGFrame:WaitForChild("Miscellaneous")
-
---Background Values
-local HSBGID = HS:WaitForChild("HSBGID")
-local HSModBGID = HS:WaitForChild("HSModBGID")
-local HSMiscBGID = HS:WaitForChild("HSMiscBGID")
-
-local ModBGID = ModS:WaitForChild("ModBGID")
-local MiscBGID = MiscS:WaitForChild("MiscBGID")
-
-
-if CPBI == true then
-	
-	HSBGID.Value = HomeSBGID
-	HSModBGID.Value = HomeSModBGID
-	HSMiscBGID.Value = HomeSMiscBGID
-	
-	ModBGID.Value = ModSBGID
-	MiscBGID.Value = MiscSBGID
-	
-	
-end
-
 
 
 
 --setting up cmd perms in panel
 
-for i,v in ipairs(perms) do
-	
-	
-	local val = Instance.new("NumberValue")
-	val.Parent = gui
-	val.Name = v[1]
-	val.Value = v[2]
-	
+local cmds = script.SR_FrameWork.Commands:GetChildren()
 
-
+for i=1,#cmds do
+	
+	if cmds[i].Name ~=  "Template" then
+		local cmd = require(cmds[i])
+		local val = Instance.new("NumberValue")
+		val.Name = cmds[i].Name
+		val.Value = cmd.RankRequired
+		print(val.Name)
+		val:Destroy()
+	end
 end
 
 -- webhook stuff
 local webhookenabled = config.webhoookenabled
 local webhookid = config.webhookid
 
+
+
+--checks if chat version is set to legacychatservice
+if TS.ChatVersion == Enum.ChatVersion.TextChatService then
+	error("Please ensure that the chat service is set to LegacyChatService for this admin panel to work as support for the new chat service has yet to be implemented.")
+end
+
 --framework parent and values
+
 
 local framework = script["SR_FrameWork"]
 
 framework.Parent = script.Parent
-local frameworkVals  = framework:WaitForChild("FrameworkVals")
+
 
 framework.Disabled = false
-frameworkVals.WebhookIdServ.Value = webhookid
-local frameworkUIs = framework:WaitForChild("UIs")
-local servmsgui = frameworkUIs.ServerMessage
-local servmsgtime = servmsgui.Duration
-servmsgtime.Value = servmsgcooldown
-
-if webhookenabled then
-	frameworkVals.WebhookEnable.Value = true
-end
 
 
+local PKU = framework:FindFirstChild("PermKickedUsers")
 
 
 
@@ -203,21 +117,9 @@ TrelloBanListName = config.TrelloBanListName
 
 TrelloAPIKey = config.TrelloAPIKey
 
-TrelloTokenVal = frameworkVals.TrelloToken
-
-TrelloBoardNameVal = frameworkVals.TrelloBoardName
-
-TrelloBanListNameVal = frameworkVals.TrelloBanListName
-
-TrelloAPIKeyVal = frameworkVals.TrelloAPIKey
 
 
-if TrelloEnabled == true then
-	TrelloTokenVal.Value = TrelloToken
-	TrelloBoardNameVal.Value = TrelloBoardName
-	TrelloBanListNameVal.Value = TrelloBanListName
-	TrelloAPIKeyVal.Value = TrelloAPIKey
-end
+
 
 local APIs = framework["API's"]
 local TrelloApi = require(APIs.TrelloAPI)
@@ -228,14 +130,12 @@ local headadminlist = config.TrelloHeadAdminListName
 local ownerlist = config.TrelloOwnersListName
 
 
-print(ownerlist)
-
 -- player service
 
 local players = game:GetService("Players")
 
 
-warn("Successfully loaded values & framework. Enjoy! - Questionable Existance#9242 / Scripter_Rickster")
+warn("Successfully loaded values & framework. Enjoy! - questionable_existence / Scripter_Rickster")
 
 players.PlayerAdded:Connect(function(player)
 	
@@ -244,7 +144,9 @@ players.PlayerAdded:Connect(function(player)
 	local chattagAPI = require(API.ChatTagAPI)
 	local ChatService = require(SSS:WaitForChild("ChatServiceRunner"):WaitForChild("ChatService"))
 
-	
+	if PKU:FindFirstChild(player.Name) then
+		player:Kick("You have been permanently kicked from this server. Please try joining another server.")
+	end
 	
 	
 	if table.find(banlist,player.UserId) or table.find(banlist,player.Name) then
@@ -257,9 +159,9 @@ players.PlayerAdded:Connect(function(player)
 		
 
 		
-		local BanBoardID = TrelloApi:GetBoardID(TrelloBoardNameVal.Value)
+		local BanBoardID = TrelloApi:GetBoardID(TrelloBoardName)
 		
-		local BanListID = TrelloApi:GetListID(TrelloBanListNameVal.Value,BanBoardID)
+		local BanListID = TrelloApi:GetListID(TrelloBanListName,BanBoardID)
 		local BanCards = TrelloApi:GetCardsInList(BanListID)
 		for _, i in pairs(BanCards) do
 			if string.find(i.name,player.UserId) or string.find(i.name,player.Name) then
@@ -289,13 +191,13 @@ players.PlayerAdded:Connect(function(player)
 			
 			
 			   
-			gui:Clone().Parent = player.PlayerGui
+			--gui:Clone().Parent = player.PlayerGui
 		elseif player:GetRankInGroup(groupid) == adminrank then
 			plrrank.Value = 2
 			servplrrank.Value = 2
 		
 			 
-			gui:Clone().Parent = player.PlayerGui
+			--gui:Clone().Parent = player.PlayerGui
 			
 		elseif player:GetRankInGroup(groupid) == hadminrank then
 			
@@ -304,7 +206,7 @@ players.PlayerAdded:Connect(function(player)
 			servplrrank.Value = 3
 			
 			   
-			gui:Clone().Parent = player.PlayerGui
+			--gui:Clone().Parent = player.PlayerGui
 			
 		elseif player:GetRankInGroup(groupid) == ownerrank then
 			
@@ -313,7 +215,7 @@ players.PlayerAdded:Connect(function(player)
 			servplrrank.Value = 4
 			 
 			    
-			gui:Clone().Parent = player.PlayerGui
+			--gui:Clone().Parent = player.PlayerGui
 		end
 		checked = true
 		
@@ -325,12 +227,12 @@ players.PlayerAdded:Connect(function(player)
 		plrrank.Value = 4
 		servplrrank.Value = 4
 		
-		gui:Clone().Parent = player.PlayerGui
+		--gui:Clone().Parent = player.PlayerGui
 		checked = true
 		
 	elseif TrelloEnabled and checked == false then
 		local temprank = 0;
-		local board = TrelloApi:GetBoardID(TrelloBoardNameVal.Value)
+		local board = TrelloApi:GetBoardID(TrelloBoardName)
 		local modslist = TrelloApi:GetLists(modlist,board)
 		local modcards = TrelloApi:GetCardsInList(modslist)
 		local adminslist = TrelloApi:GetLists(adminlist,board)
@@ -363,7 +265,7 @@ players.PlayerAdded:Connect(function(player)
 		
 		plrrank.Value = temprank
 		servplrrank.Value = temprank
-		gui:Clone().Parent = player.PlayerGui
+		--gui:Clone().Parent = player.PlayerGui
 		
 		checked = true
 		
@@ -375,7 +277,7 @@ players.PlayerAdded:Connect(function(player)
 		if s then
 			plrrank.Value = rank
 			servplrrank.Value = rank
-			gui:Clone().Parent = player.PlayerGui
+			--gui:Clone().Parent = player.PlayerGui
 		else
 			print("Admin Panel Encountered An Unknown Error.")
 			player:Kick("Failed to load the rank for the user. Please Rejoin.")
@@ -387,7 +289,7 @@ players.PlayerAdded:Connect(function(player)
 			
 			plrrank.Value = 1
 			servplrrank.Value = 1
-			gui:Clone().Parent = player.PlayerGui
+			--gui:Clone().Parent = player.PlayerGui
 			
 		elseif table.find(admin,player.UserId) or table.find(admin,player.Name) then
 		
@@ -396,7 +298,7 @@ players.PlayerAdded:Connect(function(player)
 			
 		
 			
-			gui:Clone().Parent = player.PlayerGui
+			--gui:Clone().Parent = player.PlayerGui
 		elseif table.find(headadmin,player.UserId) or table.find(headadmin,player.Name) then
 		
 			plrrank.Value = 3
@@ -404,7 +306,7 @@ players.PlayerAdded:Connect(function(player)
 			
 		
 			
-			gui:Clone().Parent = player.PlayerGui
+			--gui:Clone().Parent = player.PlayerGui
 		elseif table.find(owner,player.UserId) or table.find(owner,player.Name) then
 			
 		
@@ -413,7 +315,7 @@ players.PlayerAdded:Connect(function(player)
 			
 		
 			
-			gui:Clone().Parent = player.PlayerGui
+			--gui:Clone().Parent = player.PlayerGui
 			
 			
 		end
@@ -424,6 +326,7 @@ players.PlayerAdded:Connect(function(player)
 	ChatService.SpeakerAdded:Connect(function(speakerName)
 		chattagAPI.SetTag(speakerName)
 	end)
+	
 	
 	
 end)
