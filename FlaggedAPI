@@ -1,0 +1,23 @@
+local flagged = {}
+
+local ReportEvent = game.ReplicatedStorage.SRAdminEvents.ReportEvent
+
+local wbhkAPI = require(script.Parent.Parent["API's"].WebhookAPI)
+local wbhkEnabled = require(script.Parent.Parent.Parent:WaitForChild("SR_Loader").Config).webhoookenabled
+local wbhkID = require(script.Parent.Parent.Parent:WaitForChild("SR_Loader").Config).webhookid
+
+function flagged.Reported(plr,targ,reason)
+	
+	local reporttext = '<font color="#5865F2">'..plr.Name..': </font><font color="#ED4245"> Reported </font><font color="#5865F2">'..targ.Name..'</font> for "'..reason..'"'
+	ReportEvent:FireAllClients(reporttext)
+	
+	if wbhkEnabled  then
+		local content = "**"..plr.Name.." ("..plr.UserId..")** has reported: **"..targ.Name.." ("..targ.UserId..")** for: "..reason
+		wbhkAPI.SendLog(wbhkID,content)
+	end
+	
+	
+	
+end
+
+return flagged
