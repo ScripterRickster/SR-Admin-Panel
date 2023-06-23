@@ -56,6 +56,10 @@ local ADMEventV2 = RS.ADMEventV2
 local UpdateTools = RS.UpdateTools
 local DPlrBP = RS.DisplayPlrBPEvent
 local DVeh = RS.DispVehEvent
+local RprtEvent = RS.ReportEvent
+local UpdateLogEvent = RS.UpdateLogEvent
+local GetCommands = RS.GetCommands
+local GetPlrRank = RS.GetPlayerRank
 
 -- config stuff
 local config = require(script.Parent:WaitForChild("SR_Loader"):WaitForChild("Config"))
@@ -92,6 +96,15 @@ local currtools = {}
 local removetools = {}
 
 
+-- Some other random variables I was too lazy to classify
+
+local anticheat = config.anticheatenabled
+
+
+
+
+--DEVELOPER NOTE: PLEASE DO NOT TOUCH CODE THAT IS GREY. DOING SO MAY RESULT IN SEVERAL ERRORS BEING PRODUCED
+
 ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optextraval)
 	if player and action then
 		
@@ -102,38 +115,66 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 		if Commands:FindFirstChild(action) then
 
 			local cmd = require(Commands[action])
+			
+			local commandexecuted = false
 
-
-			if action == "Mute" or action == "Unmute" or action == "Warn" or action == "Kick" or action == "Ban" or action == "Bring" or action == "Unban" and optreason then
+			if action == "Mute" or action == "Unmute" or action == "Warn" or action == "Kick" or action == "Ban" or action == "Bring" or action == "Unban" or action == "Perm Kick" and optreason then
 				cmd.ExecuteCommand(targ,player,staffrank,targrank,optreason)
-
+				commandexecuted = true
 			elseif action == "Shutdown" and optreason then
 
 				cmd.ExecuteCommand(player,staffrank,optreason)
-
+				commandexecuted = true
 			elseif action == "Freeze" or action == "Unfreeze" or action == "Unfly" or action == "View" or action == "Kill" or action == "God" or action == "Ungod" then
 
 				cmd.ExecuteCommand(targ,player,staffrank,targrank)
+				commandexecuted = true
 			elseif action == "Fly" or action == "Set Team"  or action == "Give Tool" or action == "Remove Tool" or action == "Set Rank" and optextraval then
 				cmd.ExecuteCommand(targ,player,staffrank,targrank,optextraval)
-
+				commandexecuted = true
 			elseif action == "Set Time" or action == "Set Server Message" or action == "Staff Lock" or action == "Spawn Vehicle"  and optextraval then
 				cmd.ExecuteCommand(player,staffrank,optextraval)
+				commandexecuted = true
 			end
+			
+			if cmd.SendLog == true and commandexecuted == true then
+				local log = '<font color="#5865F2">'..player.Name..': executed the command: </font><font color="#ED4245">'..action..'</font><font color="#5865F2"> on '..opttarg..'</font> for "'..optreason..'"'
+				UpdateLogEvent:FireAllClients(log)
+			end
+
 		end
 		
 	end
 end)
 
+--Report Event
+
+RprtEvent.OnServerEvent:Connect(function(plr,targ,reason)
+	if plr and targ and reason then
+		local flagged = require(script.Flagging.Flagged)
+		flagged.Reported(plr,targ,reason)
+	end
+end)
 
 
+-- Getting the Player Rank
 
+function GPR(plr)
+	if plr then
+		local s = PlrRanks:FindFirstChild(plr.Name)
+		if s then
+			local r = PlrRanks:FindFirstChild(plr.Name).Value
+			return r
+		end
+	end
+end
 
+GetPlrRank.OnServerInvoke = GPR
 
 
 --checking if values are being changed on the client without changing on the server. Anti Exploit
 VerVent.OnServerEvent:Connect(function(player,val,nckval)
-	if val and nckval then
+	if val and nckval and anticheat == true  then
 		
 		local char = player.Character or player.CharacterAdded:Wait()
 		local reason = nil
