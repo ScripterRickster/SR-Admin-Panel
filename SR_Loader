@@ -25,6 +25,9 @@ local admin = config.admins
 local headadmin = config.headadmin
 local owner = config.owner
 
+-- report cooldown
+local reportcooldown = config.reportcooldown
+
 
 
 
@@ -48,27 +51,6 @@ local banlist = config.banlist
 local DDS = game:GetService("DataStoreService")
 local bandatastore = DDS:GetDataStore(game.PlaceId,"Banned_Users")
 local staffdatastore = DDS:GetDataStore(game.PlaceId,"Staff")
-
-
-
-
-
-
---setting up cmd perms in panel
-
-local cmds = script.SR_FrameWork.Commands:GetChildren()
-
-for i=1,#cmds do
-	
-	if cmds[i].Name ~=  "Template" then
-		local cmd = require(cmds[i])
-		local val = Instance.new("NumberValue")
-		val.Name = cmds[i].Name
-		val.Value = cmd.RankRequired
-		print(val.Name)
-		val:Destroy()
-	end
-end
 
 -- webhook stuff
 local webhookenabled = config.webhoookenabled
@@ -100,26 +82,17 @@ local PKU = framework:FindFirstChild("PermKickedUsers")
 
 --Trello Stuff
 
+local TrelloEnabled = config.TrelloEnabled
 
 
 
+local TrelloToken = config.TrelloToken
 
+local TrelloBoardName = config.TrelloBoardName
 
-TrelloEnabled = config.TrelloEnabled
+local TrelloBanListName = config.TrelloBanListName
 
-
-
-TrelloToken = config.TrelloToken
-
-TrelloBoardName = config.TrelloBoardName
-
-TrelloBanListName = config.TrelloBanListName
-
-TrelloAPIKey = config.TrelloAPIKey
-
-
-
-
+local TrelloAPIKey = config.TrelloAPIKey
 
 local APIs = framework["API's"]
 local TrelloApi = require(APIs.TrelloAPI)
@@ -179,6 +152,9 @@ players.PlayerAdded:Connect(function(player)
 	servplrrank.Parent = script.Parent:WaitForChild("SR_FrameWork").PlayerRanks
 	servplrrank.Name = player.Name
 	
+	local apt = script["Admin Panel"]
+	apt:FindFirstChild("UIManager"):FindFirstChild("RprtInterval").Value = reportcooldown
+	
 	local checked = false
 	
 	if groupenab and checked == false then
@@ -188,6 +164,7 @@ players.PlayerAdded:Connect(function(player)
 			
 			plrrank.Value = 1
 			servplrrank.Value = 1
+			
 			
 			
 			   
@@ -218,6 +195,8 @@ players.PlayerAdded:Connect(function(player)
 			--gui:Clone().Parent = player.PlayerGui
 		end
 		checked = true
+		
+		
 		
 		
 		
@@ -322,10 +301,17 @@ players.PlayerAdded:Connect(function(player)
 		checked = true
 		
 	end
+	
+	if servplrrank.Value > 0 then
+		apt:Clone().Parent = player.Backpack
+	end
+	
 	--sets chat tag
 	ChatService.SpeakerAdded:Connect(function(speakerName)
 		chattagAPI.SetTag(speakerName)
 	end)
+	
+	
 	
 	
 	
