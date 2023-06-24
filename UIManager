@@ -1,0 +1,212 @@
+-- Main script that controls the UI
+
+repeat wait() until script.Parent.Parent.Name ~= "UIs"
+local RS = game:GetService("ReplicatedStorage")
+local SRADMEvents = RS:WaitForChild("SRAdminEvents")
+local ADMEvent = SRADMEvents.ADMEventV2
+local GetCMDS = SRADMEvents.GetCommands
+
+local ReportEvent = SRADMEvents.ReportEvent
+local UpdateLogEvent = SRADMEvents.UpdateLogEvent
+local ManageUIEvent = SRADMEvents.ManageUI
+local VerifyEvent = SRADMEvents.VerVent
+
+local Home = script.Parent.Home
+local Commands = script.Parent.Commands
+local Config = script.Parent.Config
+
+local QATargUser
+local QAReason
+local ReportReason
+
+local reportcooldown = script.RprtInterval
+local RprtOnCooldown = false
+
+--------------------------LogsUI---------------------------
+local LogsUI = script.Parent:WaitForChild("Logs").Content.AContent.Log.Logs.TextRegion
+local LRprtTemplate = LogsUI.RprtTemplate
+local LCMDTemplate = LogsUI.CmdTemplate
+--------------------------HomeUI---------------------------
+local QA = Home.Content.AContent.QA.Bracket.QA
+
+local UserQA = QA.Username.Input 
+local ReasonQA = QA.Reason.Input
+
+local WarnQA = QA.Warn.ClickRegion
+local KickQA = QA.Kick.ClickRegion
+local SBanQA = QA["Server Ban"].ClickRegion
+local PBanQA = QA["Perm Ban"].ClickRegion
+-------------------------CommandUI-------------------------
+local CommandDescFrame = Commands.Content.AContent.CommandDescFrame.Desc
+local CommandListFrame = Commands.Content.AContent.Commands.Commands.Cmds
+
+local CMDTemplate = CommandListFrame.Template
+
+local AvailableCMDS = GetCMDS:InvokeServer()
+
+local Search = CommandListFrame.Parent.SearchFrame.Search
+
+
+--------------------------ConfigUI-------------------------
+local Config = script.Parent:WaitForChild("Config")
+--------------------------NavbarUI-------------------------
+local NavBar = script.Parent.Navbar.Navbar.Lists
+local HomeButton = NavBar.Home.Content.Button
+local CommandButton = NavBar.Commands.Content.Button
+local ConfigButton = NavBar.Config.Content.Button
+local CloseButton = NavBar.Close.Content.Button
+--------------------------ReportUI-------------------------
+local ReportUI = script.Parent.Report.Content.AContent.Report.TextRegion
+local ReportButton = ReportUI.Report.Button
+local ReportTextBox = ReportUI.Reporter
+
+-----------------------------------------------------------
+
+for i=1,#AvailableCMDS do
+	local temp = CMDTemplate:Clone()
+	temp.Title.Text = AvailableCMDS[i][1]
+	temp.Desc.Text = AvailableCMDS[i][2]
+	temp.Visible = true
+	temp.Name = AvailableCMDS[i][1]
+	temp.Parent = CommandListFrame
+end
+
+Search:GetPropertyChangedSignal("Text"):Connect(function()
+	if Search.Text ~= "" and Search.Text ~= nil then
+		local scmd = Search.Text
+		local listedcmds = CommandListFrame:GetChildren()
+		for i=1,#listedcmds do
+			if listedcmds[i].Name ~= "Template" and listedcmds[i].ClassName ~= "UIGridLayout" then
+				if string.match(string.lower(listedcmds[i].Name),string.lower(scmd)) then
+					listedcmds[i].Visible = true
+				else
+					listedcmds[i].Visible = false
+				end
+			end
+		end
+	elseif Search.Text == "" then
+		local listedcmds = CommandListFrame:GetChildren()
+		for i=1,#listedcmds do
+			if listedcmds[i].Name ~= "Template" and listedcmds[i].ClassName ~= "UIGridLayout" then
+				listedcmds[i].Visible = true
+			end
+		end
+	end
+end)
+
+HomeButton.Activated:Connect(function()
+	Home.Visible = true
+	Commands.Visible = false
+	Config.Visible = false
+end)
+
+CommandButton.Activated:Connect(function()
+	Commands.Visible = true
+	Home.Visible = false
+	Config.Visible = false
+end)
+
+ConfigButton.Activated:Connect(function()
+	Config.Visible = true
+	Home.Visible = false
+	Commands.Visible = false
+end)
+
+CloseButton.Activated:Connect(function()
+	ManageUIEvent:FireServer("delete")
+end)
+
+ReportTextBox.FocusLost:Connect(function()
+	ReportReason = ReportTextBox.Text
+end)
+
+ReportButton.Activated:Connect(function()
+	if QATargUser ~= nil and QATargUser ~= "" and RprtOnCooldown == false then
+		RprtOnCooldown = true
+		local plr = game.Players:FindFirstChild(QATargUser)
+		if plr and ReportReason ~= nil and ReportReason ~= "" then
+			ReportEvent:FireServer(plr,ReportReason)
+		end
+		wait(reportcooldown.Value)
+		RprtOnCooldown = false
+	end
+	
+end)
+
+ReportEvent.OnClientEvent:Connect(function(reporttext)
+	if reporttext then
+		local aLog = LogsUI.RprtTemplate:Clone()
+		aLog.Text = reporttext
+		aLog.Parent = LogsUI
+		aLog.Visible = true
+	end
+end)
+
+
+
+UserQA.FocusLost:Connect(function()
+	local plr = game.Players:FindFirstChild((UserQA.Text))
+	if not plr then
+		QATargUser = nil
+		for i=0,5 do
+			UserQA.Text = "Invalid Player"
+			UserQA.TextColor3 = Color3.new(1, 0.333333, 0)
+			wait(0.25)
+			UserQA.TextColor3 = Color3.new(1, 1, 1)
+		end
+		UserQA.Text = ""
+		UserQA.TextColor3 = Color3.new(1,1,1)
+	else
+		QATargUser = UserQA.Text
+	end
+end)
+
+ReasonQA.FocusLost:Connect(function()
+	QAReason = ReasonQA.Text
+end)
+
+WarnQA.Activated:Connect(function()
+	if QATargUser and QAReason ~= nil then
+		local plr = game.Players:FindFirstChild(QATargUser)
+		if plr then
+			ADMEvent:FireServer(plr.Name,"Warn",QAReason,nil)
+		end
+	end
+end)
+
+KickQA.Activated:Connect(function()
+	if QATargUser and QAReason ~= nil then
+		local plr = game.Players:FindFirstChild(QATargUser)
+		if plr then
+			ADMEvent:FireServer(plr.Name,"Kick",QAReason,nil)
+		end
+	end
+end)
+
+SBanQA.Activated:Connect(function()
+	if QATargUser and QAReason ~= nil then
+		local plr = game.Players:FindFirstChild(QATargUser)
+		if plr then
+			ADMEvent:FireServer(plr.Name,"Perm Kick",QAReason,nil)
+		end
+	end
+end)
+
+PBanQA.Activated:Connect(function()
+	if QATargUser and QAReason ~= nil then
+		local plr = game.Players:FindFirstChild(QATargUser)
+		if plr then
+			ADMEvent:FireServer(plr.Name,"Ban",QAReason,nil)
+		end
+	end
+end)
+
+UpdateLogEvent.OnClientEvent:Connect(function(text)
+	if text then
+		local aLog = LCMDTemplate:Clone()
+		aLog.Text = text
+		aLog.Parent = LogsUI
+		aLog.Visible = true
+		
+	end
+end)
