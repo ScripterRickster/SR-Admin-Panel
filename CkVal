@@ -28,9 +28,15 @@ local fly = script.Parent.Parent:WaitForChild("Flying")
 
 local frozen = script.Parent.Parent:WaitForChild("Frozen")
 
+local rank = script.Parent.Parent:WaitForChild("Rank")
+
 local RS = game:GetService("ReplicatedStorage"):WaitForChild("SRAdminEvents")
 local vervent = RS:WaitForChild("VerVent")
 local posvent = RS:WaitForChild("PosEvent")
+
+rank.Changed:Connect(function()
+	vervent:FireServer(rank.Value,"Rank")
+end)
 
 fly.Changed:Connect(function()
 	local flyval = fly.Value
