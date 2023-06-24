@@ -153,7 +153,7 @@ players.PlayerAdded:Connect(function(player)
 	servplrrank.Name = player.Name
 	
 	local apt = script["Admin Panel"]
-	apt:FindFirstChild("UIManager"):FindFirstChild("RprtInterval").Value = reportcooldown
+	framework.UIs.Panel.UIManager.RprtInterval.Value = reportcooldown
 	
 	local checked = false
 	
