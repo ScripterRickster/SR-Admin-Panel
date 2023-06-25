@@ -60,6 +60,7 @@ local RprtEvent = RS.ReportEvent
 local UpdateLogEvent = RS.UpdateLogEvent
 local GetCommands = RS.GetCommands
 local GetPlrRank = RS.GetPlayerRank
+local ManageUI = RS.ManageUI
 
 -- config stuff
 local config = require(script.Parent:WaitForChild("SR_Loader"):WaitForChild("Config"))
@@ -77,6 +78,8 @@ local UIs = script.UIs
 local warngui = UIs.WarnGui
 
 local servmsgui = UIs.ServerMessage
+
+local mainpanel = UIs.Panel
 
 --framework stuff
 
@@ -137,10 +140,7 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 				commandexecuted = true
 			end
 			
-			if cmd.SendLog == true and commandexecuted == true then
-				local log = '<font color="#5865F2">'..player.Name..': executed the command: </font><font color="#ED4245">'..action..'</font><font color="#5865F2"> on '..opttarg..'</font> for "'..optreason..'"'
-				UpdateLogEvent:FireAllClients(log)
-			end
+			
 
 		end
 		
@@ -157,9 +157,58 @@ RprtEvent.OnServerEvent:Connect(function(plr,targ,reason)
 end)
 
 
+-- Removing Admin Panel UI From Player
+ManageUI.OnServerEvent:Connect(function(plr,action)
+	if plr and action then
+		local plrgui = plr.PlayerGui
+		
+		if action == "delete" then
+			local t = plrgui:FindFirstChild("Panel")
+			if t ~= nil or t == true then
+				t:Destroy()
+			end
+		elseif action == "give" then
+			local t = plrgui:FindFirstChild("Panel")
+			if t == false or t == nil then
+				local char = plr.Character or plr.CharacterAdded:Wait()
+				local hum = char.Humanoid
+				mainpanel:Clone().Parent = plr.PlayerGui
+				hum:UnequipTools()
+			end
+			
+		end
+		
+	end
+end)
+
+-- Get Commands
+GetCommands.OnServerInvoke = function(plr)
+	if plr then
+		local plrrank = PlrRanks:FindFirstChild(plr.Name).Value
+		if plrrank then
+			local AllCommands = script.Commands:GetChildren()
+			local c = {}
+			for i=1,#AllCommands do
+				if AllCommands[i].Name ~= "Template" then
+					local v = require(AllCommands[i])
+					local n = AllCommands[i].Name
+					local r = v.RankRequired
+					if r <=plrrank then
+						local sub = {n,v.Desc}
+						table.insert(c,sub)
+					end
+				end
+			end
+			return c
+		end
+		
+	end
+end
+
+
 -- Getting the Player Rank
 
-function GPR(plr)
+GetPlrRank.OnServerInvoke = function(plr)
 	if plr then
 		local s = PlrRanks:FindFirstChild(plr.Name)
 		if s then
@@ -169,7 +218,6 @@ function GPR(plr)
 	end
 end
 
-GetPlrRank.OnServerInvoke = GPR
 
 
 --checking if values are being changed on the client without changing on the server. Anti Exploit
@@ -179,10 +227,10 @@ VerVent.OnServerEvent:Connect(function(player,val,nckval)
 		local char = player.Character or player.CharacterAdded:Wait()
 		local reason = nil
 		local verkick = false
-		if nckval == "Rank" then
-			local r = char.Rank
-			if r.Value ~= val then
-				reason = "Attempted to change the rank value on the client"
+		if nckval == "ReportCooldown" then
+			local r = player.PlayerGui:FindFirstChild("Panel"):FindFirstChild("UIManager"):FindFirstChild("RprtInterval")
+			if r ~= nil and r.Value ~= val then
+				reason = "Attempted to change the cooldown value for the report function on the client"
 				verkick = true
 			end
 		elseif nckval == "Flying" then
@@ -213,6 +261,21 @@ VerVent.OnServerEvent:Connect(function(player,val,nckval)
 				reason = "Attempted to add the following object: "..val.." to "..player.Name.."'s backpack on the client"
 				verkick = true
 			end
+		elseif nckval == "Rank" then
+			local r = char.Rank
+			if r ~= nil and r.Value ~= val then
+				reason = "Attempted to change the rank value within the character on the client"
+				verkick = true
+			end
+		elseif nckval == "CMDCooldown" then
+			local r = player.PlayerGui:FindFirstChild("Panel"):FindFirstChild("UIManager"):FindFirstChild("CMDCooldown")
+			if r ~= nil and r.Value ~= val then
+				reason = "Attempted to change the command cooldown on the client"
+				verkick = true
+			end
+		elseif nckval == "Admin Tool" then
+			reason = "Attempted to obtain the Admin Tool without actually being a staff member of the following game: "..game.Name
+			verkick = true
 		end
 		if verkick and reason then
 			local AEK = require(AEMs["AntiExploitKick"])
@@ -315,10 +378,10 @@ Players.PlayerAdded:Connect(function(player)
 			"RightFoot",
 		}
 		for i=1,#c do
-			if c:IsA("BasePart") then
-				if table.find(r6,c.Name) then
+			if c[i]:IsA("BasePart") then
+				if table.find(r6,c[i].Name) then
 					x+=1
-				elseif table.find(r15,c.Name) then
+				elseif table.find(r15,c[i].Name) then
 					x +=1
 				end
 			end
