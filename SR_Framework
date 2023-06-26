@@ -114,36 +114,29 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 		local targ = game.Players[opttarg]
 		local staffrank = PlrRanks[player.Name].Value
 		local targrank = PlrRanks[opttarg].Value
+
 		
 		if Commands:FindFirstChild(action) then
+			
 
 			local cmd = require(Commands[action])
 			
-			local commandexecuted = false
-
 			if action == "Mute" or action == "Unmute" or action == "Warn" or action == "Kick" or action == "Ban" or action == "Bring" or action == "Unban" or action == "Perm Kick" and optreason then
 				cmd.ExecuteCommand(targ,player,staffrank,targrank,optreason)
-				commandexecuted = true
 			elseif action == "Shutdown" and optreason then
 
 				cmd.ExecuteCommand(player,staffrank,optreason)
-				commandexecuted = true
 			elseif action == "Freeze" or action == "Unfreeze" or action == "Unfly" or action == "View" or action == "Kill" or action == "God" or action == "Ungod" then
 
 				cmd.ExecuteCommand(targ,player,staffrank,targrank)
-				commandexecuted = true
 			elseif action == "Fly" or action == "Set Team"  or action == "Give Tool" or action == "Remove Tool" or action == "Set Rank" and optextraval then
 				cmd.ExecuteCommand(targ,player,staffrank,targrank,optextraval)
-				commandexecuted = true
-			elseif action == "Set Time" or action == "Set Server Message" or action == "Staff Lock" or action == "Spawn Vehicle"  and optextraval then
+			elseif action == "Set Time" or action == "Set Server Message" or action == "Spawn Vehicle"  and optextraval then
 				cmd.ExecuteCommand(player,staffrank,optextraval)
-				commandexecuted = true
-			elseif action == "Staff Lock" and optextraval and optreason then
+			elseif action == "Staff Lock" and optextraval ~= "" and optreason ~= "" then
 				cmd.ExecuteCommand(player,staffrank,optreason,optextraval)
-				commandexecuted = true
 			end
 		end
-		
 	end
 end)
 
@@ -301,17 +294,17 @@ end)
 
 
 --tools
-UpdateTools.OnServerEvent:Connect(function(player)
+UpdateTools.OnServerInvoke = function(player)
 	for i=1,#tools do
 		if not table.find(currtools,tools[i].Name) then
 			table.insert(currtools,tools[i].Name)
 		end
 	end
-	UpdateTools:FireClient(player,currtools)
-end)
+	return currtools
+end
 
 --remove tools 
-DPlrBP.OnServerEvent:Connect(function(player,targ)
+DPlrBP.OnServerInvoke = function(player,targ)
 	if targ then
 		local plr = game.Players[targ]
 		local bp = plr:WaitForChild("Backpack"):GetChildren()
@@ -325,13 +318,13 @@ DPlrBP.OnServerEvent:Connect(function(player,targ)
 				table.remove(removetools,removetools[i])
 			end
 		end 
-		DPlrBP:FireClient(player,removetools)
+		return removetools
 	end
-end)
+end
 
 --display vehicles
 
-DVeh.OnServerEvent:Connect(function(player)
+DVeh.OnServerInvoke = function(player)
 	local allvehs = vehicles:GetChildren()
 	local vehs = {}
 	for i=1,#allvehs do
@@ -339,8 +332,8 @@ DVeh.OnServerEvent:Connect(function(player)
 			table.insert(vehs,allvehs[i].Name)
 		end
 	end
-	DVeh:FireClient(player,vehs)
-end)
+	return vehs
+end
 
 --anti exploit module giver
 
@@ -399,10 +392,7 @@ end)
 
 Players.PlayerAdded:Connect(function(player)
 	
-	
-	
 	local char = player.Character or player.CharacterAdded:Wait()
-	
 	
 	char.Humanoid.Died:Connect(function()
 		
