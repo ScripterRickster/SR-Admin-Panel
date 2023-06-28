@@ -8,28 +8,11 @@ local TPS = game:GetService("TeleportService")
 
 local RS = game:GetService("ReplicatedStorage").SRAdminEvents
 
-local CS = game:GetService("CollectionService")
-
-local Lighting = game:GetService("Lighting")
-
-local Debris = game:GetService("Debris")
-
-local TS = game:GetService("TextService")
-
-
-local HTTP = game:GetService("HttpService")
-
 local SStorage = game:GetService("ServerStorage")
-
-local Teams = game:GetService("Teams")
 
 local Players = game:GetService("Players")
 
 local ServerScriptService = game:GetService("ServerScriptService")
-
-local ChatService = require(ServerScriptService:WaitForChild("ChatServiceRunner"):WaitForChild("ChatService"))
-
-
 
 -- API's , Command and Anti Exploit Modules
 local Commands = script["Commands"]
