@@ -1,9 +1,11 @@
 local lighting = game:GetService("Lighting")
-
+local Players = game:GetService("Players")
+local TCS = game:GetService("TextChatService")
 local RS = game:GetService("ReplicatedStorage"):WaitForChild("SRAdminEvents")
 
 local CLTEvent = RS:WaitForChild("CLTEvent")
 local pltevent = RS:WaitForChild("PltEvent")
+local GetTagInfo = RS:WaitForChild("GetChatTags")
 
 local camera = game.Workspace.CurrentCamera
 
@@ -37,3 +39,21 @@ pltevent.OnClientEvent:Connect(function(cmd)
 		end
 	end
 end)
+
+-- new chat service chat tag
+
+TCS.OnIncomingMessage = function(message: TextChatMessage)
+	if message.TextSource and TCS.ChatVersion == Enum.ChatVersion.TextChatService then
+		local plr = Players:GetPlayerByUserId(message.TextSource.UserId)
+		if plr then
+			local taginfo = GetTagInfo:InvokeServer(plr.Name)
+			if taginfo then
+				local color3 = taginfo.TagColor
+				local htmlcolor =string.format("#%02X%02X%02X", color3.R * 0xFF, color3.G * 0xFF, color3.B * 0xFF)
+				local properties = Instance.new("TextChatMessageProperties")
+				properties.PrefixText = "<font color='"..htmlcolor.."'>["..taginfo.TagText.."]</font>"..message.PrefixText
+				return properties
+			end
+		end
+	end
+end
