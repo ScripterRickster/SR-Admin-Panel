@@ -7,41 +7,27 @@ local pltevent = RS:WaitForChild("PltEvent")
 
 local camera = game.Workspace.CurrentCamera
 
-
+-- Main event that deals with client related stuff
 CLTEvent.OnClientEvent:Connect(function(action,optextraval)
-	print(action,optextraval)
 	if action == "Set Time" then
 		if optextraval then
 			lighting.ClockTime = optextraval
 		end
-		
-		
 	elseif action == "View" then
-		
 		if optextraval then
-			
-			local targplr = game.Players[optextraval]
+			local targplr = optextraval
 			local char = targplr.Character or targplr.CharacterAdded:Wait()
-			--local hum = char:WaitForChild("HumanoidRootPart")
-
 			camera.CameraSubject = char
-			
 		end
-		
 	end
-	
 	
 end)
 
-
-
-
-
-
-pltevent.OnClientEvent:Connect(function(target,cmd)
+-- basically enables platform stand on the humanoid or not. kinda useless tbh other than the flight stuff
+pltevent.OnClientEvent:Connect(function(cmd)
 	
-	if target and cmd then
-		local targplr = game.Players[target]
+	if cmd then
+		local targplr = game.Players.LocalPlayer
 		local char = targplr.Character or targplr.CharacterAdded:Wait()
 		local hum = char:WaitForChild("Humanoid")
 		if hum  and cmd == "Stand" then
