@@ -1,5 +1,3 @@
--- Main script that controls the UI
-
 repeat wait() until script.Parent.Parent.Name ~= "UIs"
 local RS = game:GetService("ReplicatedStorage")
 local SRADMEvents = RS:WaitForChild("SRAdminEvents")
@@ -10,6 +8,10 @@ local ReportEvent = SRADMEvents.ReportEvent
 local UpdateLogEvent = SRADMEvents.UpdateLogEvent
 local ManageUIEvent = SRADMEvents.ManageUI
 local VerifyEvent = SRADMEvents.VerVent
+local DisplayVehiclesEvent = SRADMEvents.DispVehEvent
+local DisplayBackpackEvent = SRADMEvents.DisplayPlrBPEvent
+local UpdateToolsEvent = SRADMEvents.UpdateTools
+local GetRank = SRADMEvents.GetPlayerRank
 
 local Home = script.Parent.Home
 local Commands = script.Parent.Commands
@@ -20,6 +22,7 @@ local QAReason
 local ReportReason
 
 local reportcooldown = script.RprtInterval
+local cmdcooldown = script.CMDCooldown
 local RprtOnCooldown = false
 
 --------------------------LogsUI---------------------------
@@ -46,6 +49,20 @@ local AvailableCMDS = GetCMDS:InvokeServer()
 
 local Search = CommandListFrame.Parent.SearchFrame.Search
 
+local Params = CommandDescFrame:WaitForChild("ParameterFrame")
+local SelectedParam = Params:WaitForChild("SelectedParameter")
+local MiscParam = Params:WaitForChild("Misc")
+
+local ModParam = Params:WaitForChild("Moderation")
+local ShutdownParam = Params:WaitForChild("Shutdown")
+local AnnounceParam = Params:WaitForChild("Announcement")
+local TimeParam = Params:WaitForChild("Time")
+
+local FlySpeedParam = MiscParam:WaitForChild("FlySpeed")
+local TeamParam = MiscParam:WaitForChild("Team")
+local ToolsParam = MiscParam:WaitForChild("Tools")
+local MiscUsernameParam = MiscParam:WaitForChild("Username")
+local VehiclesParam = MiscParam:WaitForChild("Vehicles")
 
 --------------------------ConfigUI-------------------------
 local Config = script.Parent:WaitForChild("Config")
@@ -55,21 +72,77 @@ local HomeButton = NavBar.Home.Content.Button
 local CommandButton = NavBar.Commands.Content.Button
 local ConfigButton = NavBar.Config.Content.Button
 local CloseButton = NavBar.Close.Content.Button
+local RankText = NavBar.Parent:WaitForChild("Thumbnails"):WaitForChild("TextRegion").Role
 --------------------------ReportUI-------------------------
 local ReportUI = script.Parent.Report.Content.AContent.Report.TextRegion
 local ReportButton = ReportUI.Report.Button
 local ReportTextBox = ReportUI.Reporter
 
------------------------------------------------------------
-
-for i=1,#AvailableCMDS do
-	local temp = CMDTemplate:Clone()
-	temp.Title.Text = AvailableCMDS[i][1]
-	temp.Desc.Text = AvailableCMDS[i][2]
-	temp.Visible = true
-	temp.Name = AvailableCMDS[i][1]
-	temp.Parent = CommandListFrame
+----------------------VehicleTableSetup--------------------
+local vehicletable = DisplayVehiclesEvent:InvokeServer()
+if vehicletable then
+	for i=1,#vehicletable do
+		local vehtemplate = VehiclesParam.Template:Clone()
+		vehtemplate:FindFirstChild("Name").Text = vehicletable[i]
+		vehtemplate:FindFirstChild("ClickRegion").LocalScript.Enabled = true
+		vehtemplate.Name = vehicletable[i]
+		vehtemplate.Parent = VehiclesParam
+		vehtemplate.Visible = true
+	end
 end
+-----------------------------------------------------------
+local currentplayerrank = GetRank:InvokeServer()
+for i=1,#AvailableCMDS do
+	if currentplayerrank >= AvailableCMDS[i][3] then
+		local temp = CMDTemplate:Clone()
+		temp.Title.Text = AvailableCMDS[i][1]
+		temp.Desc.Text = AvailableCMDS[i][2]
+		temp.Visible = true
+		temp.Name = AvailableCMDS[i][1]
+		temp.Parent = CommandListFrame
+	end
+end
+
+ManageUIEvent.OnClientEvent:Connect(function(action,extraval)
+	if action and extraval then
+		if action == "Update UI" and tonumber(extraval) <= 4 and tonumber(extraval) >= 1 then
+			extraval = tonumber(extraval)
+			CommandDescFrame.Parent.Visible = false
+			CommandDescFrame:WaitForChild("ParameterFrame"):WaitForChild("SelectedParameter").Value = nil
+			local prevcmds = CommandListFrame:GetChildren()
+			for i=1,#prevcmds do
+				if prevcmds[i]:IsA("Frame") and prevcmds[i].Name ~= "Template" then
+					prevcmds[i]:Destroy()
+				end
+			end
+			
+			local cplrrank = GetRank:InvokeServer()
+			for i=1,#AvailableCMDS do
+				if cplrrank >= AvailableCMDS[i][3] then
+					local tempc = CMDTemplate:Clone()
+					tempc.Title.Text = AvailableCMDS[i][1]
+					tempc.Desc.Text = AvailableCMDS[i][2]
+					tempc.Visible = true
+					tempc.Name = AvailableCMDS[i][1]
+					tempc.Parent = CommandListFrame
+				end
+			end
+			
+			if cplrrank == 1 then
+				RankText.Text  = "Moderator"
+			elseif cplrrank == 2 then
+				RankText.Text = "Administrator"
+			elseif cplrrank == 3 then
+				RankText.Text  = "Head Administrator"
+			elseif cplrrank == 4 then
+				RankText.Text  = "Owner"
+			end
+			
+			
+			
+		end
+	end
+end)
 
 Search:GetPropertyChangedSignal("Text"):Connect(function()
 	if Search.Text ~= "" and Search.Text ~= nil then
@@ -92,6 +165,14 @@ Search:GetPropertyChangedSignal("Text"):Connect(function()
 			end
 		end
 	end
+end)
+
+reportcooldown.Changed:Connect(function()
+	VerifyEvent:FireServer(reportcooldown.Value,"ReportCooldown")
+end)
+
+cmdcooldown.Changed:Connect(function()
+	VerifyEvent:FireServer(cmdcooldown.Value,"CMDCooldown")
 end)
 
 HomeButton.Activated:Connect(function()
