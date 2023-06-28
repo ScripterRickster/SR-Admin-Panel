@@ -124,10 +124,8 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 			if action == "Mute" or action == "Unmute" or action == "Warn" or action == "Kick" or action == "Ban" or action == "Bring" or action == "Unban" or action == "Perm Kick" and optreason then
 				cmd.ExecuteCommand(targ,player,staffrank,targrank,optreason)
 			elseif action == "Shutdown" and optreason then
-
 				cmd.ExecuteCommand(player,staffrank,optreason)
 			elseif action == "Freeze" or action == "Unfreeze" or action == "Unfly" or action == "View" or action == "Kill" or action == "God" or action == "Ungod" then
-
 				cmd.ExecuteCommand(targ,player,staffrank,targrank)
 			elseif action == "Fly" or action == "Set Team"  or action == "Give Tool" or action == "Remove Tool" or action == "Set Rank" and optextraval then
 				cmd.ExecuteCommand(targ,player,staffrank,targrank,optextraval)
@@ -151,14 +149,14 @@ end)
 
 
 -- Removing Admin Panel UI From Player
-ManageUI.OnServerEvent:Connect(function(plr,action)
+ManageUI.OnServerEvent:Connect(function(plr,action,targ)
 	if plr and action then
 		local plrgui = plr.PlayerGui
 		
 		if action == "delete" then
 			local t = plrgui:FindFirstChild("Panel")
 			if t ~= nil or t == true then
-				t:Destroy()
+				t.Enabled = false
 			end
 		elseif action == "give" then
 			local t = plrgui:FindFirstChild("Panel")
@@ -167,8 +165,9 @@ ManageUI.OnServerEvent:Connect(function(plr,action)
 				local hum = char.Humanoid
 				mainpanel:Clone().Parent = plr.PlayerGui
 				hum:UnequipTools()
+			else
+				t.Enabled = true
 			end
-			
 		end
 		
 	end
@@ -187,7 +186,7 @@ GetCommands.OnServerInvoke = function(plr)
 					local n = AllCommands[i].Name
 					local r = v.RankRequired
 					if r <=plrrank then
-						local sub = {n,v.Desc}
+						local sub = {n,v.Desc,r}
 						table.insert(c,sub)
 					end
 				end
@@ -308,16 +307,12 @@ DPlrBP.OnServerInvoke = function(player,targ)
 	if targ then
 		local plr = game.Players[targ]
 		local bp = plr:WaitForChild("Backpack"):GetChildren()
+		table.clear(removetools)
 		for i=1,#bp do
 			if not table.find(removetools,bp[i].Name) then
 				table.insert(removetools,bp[i].Name)
 			end
 		end
-		for i=1,#removetools do
-			if removetools[i] ~= bp[i].Name then
-				table.remove(removetools,removetools[i])
-			end
-		end 
 		return removetools
 	end
 end
