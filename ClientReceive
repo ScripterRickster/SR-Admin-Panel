@@ -26,7 +26,7 @@ CLTEvent.OnClientEvent:Connect(function(action,optextraval)
 	elseif action == "Mute" or action == "Unmute" and (optextraval == true or optextraval == false) then
 		muted = optextraval
 		
-		if action == "Mute" then
+		if action == "Mute" and muted == false then
 			local TextChannels = TCS:WaitForChild("TextChannels"):GetChildren()
 			for i=1,#TextChannels do
 				if TextChannels[i]:IsA("TextChannel") then
@@ -47,7 +47,7 @@ CLTEvent.OnClientEvent:Connect(function(action,optextraval)
 
 				end
 			end
-		elseif action == "Unmute" then
+		elseif action == "Unmute" and muted == true then
 			local TextChannels = TCS:WaitForChild("TextChannels"):GetChildren()
 			for i=1,#TextChannels do
 				if TextChannels[i]:IsA("TextChannel") then
