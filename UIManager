@@ -107,8 +107,11 @@ ManageUIEvent.OnClientEvent:Connect(function(action,extraval)
 	if action and extraval then
 		if action == "Update UI" and tonumber(extraval) <= 4 and tonumber(extraval) >= 1 then
 			extraval = tonumber(extraval)
+			CommandDescFrame.Parent.Parent.Parent.Parent.Visible = false
 			CommandDescFrame.Parent.Visible = false
+			CommandDescFrame.Parent.Parent:WaitForChild("Commands").Visible = true
 			CommandDescFrame:WaitForChild("ParameterFrame"):WaitForChild("SelectedParameter").Value = nil
+			Home.Visible = true
 			local prevcmds = CommandListFrame:GetChildren()
 			for i=1,#prevcmds do
 				if prevcmds[i]:IsA("Frame") and prevcmds[i].Name ~= "Template" then
