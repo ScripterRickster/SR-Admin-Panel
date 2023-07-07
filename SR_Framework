@@ -1,5 +1,4 @@
 wait(0.01)
-
 --services
 
 local DDS = game:GetService("DataStoreService")
@@ -12,6 +11,8 @@ local SStorage = game:GetService("ServerStorage")
 
 local Players = game:GetService("Players")
 
+local TCS = game:GetService("TextChatService")
+
 local ServerScriptService = game:GetService("ServerScriptService")
 
 -- API's , Command and Anti Exploit Modules
@@ -23,12 +24,13 @@ local APIs = script["API's"]
 
 local wbhkAPI = require(APIs.WebhookAPI)
 
-local ChatTagAPI = require(APIs.ChatTagAPI)
-
 -- datastores
 local BanStore = DDS:GetDataStore(game.PlaceId,"Banned_Users")
 
 local StaffStore = DDS:GetDataStore(game.PlaceId,"Staff")
+
+-- chatversion
+local chatversion = TCS.ChatVersion
 
 -- events
 local VerVent = RS.VerVent
@@ -44,6 +46,7 @@ local UpdateLogEvent = RS.UpdateLogEvent
 local GetCommands = RS.GetCommands
 local GetPlrRank = RS.GetPlayerRank
 local ManageUI = RS.ManageUI
+local GetChatTagInfo = RS.GetChatTags
 
 -- config stuff
 local config = require(script.Parent:WaitForChild("SR_Loader"):WaitForChild("Config"))
@@ -85,6 +88,7 @@ local removetools = {}
 -- Some other random variables I was too lazy to classify
 
 local anticheat = config.anticheatenabled
+local anticheatignore = config.anticheatignore
 
 
 
@@ -156,6 +160,20 @@ ManageUI.OnServerEvent:Connect(function(plr,action,targ)
 	end
 end)
 
+-- Get Chat Tags for new textchatservice
+GetChatTagInfo.OnServerInvoke = function(plr,targ)
+	if plr and targ and SCTenabled == true then
+		local targplr = game.Players:FindFirstChild(targ)
+		if targplr then
+			local plrrank = PlrRanks:FindFirstChild(targplr.Name).Value
+			if plrrank >= 1 and plrrank <= 4 then
+				local staffmemtag = stafftags[plrrank]
+				return staffmemtag
+			end
+		end
+	end
+end
+
 -- Get Commands
 GetCommands.OnServerInvoke = function(plr)
 	if plr then
@@ -202,59 +220,65 @@ VerVent.OnServerEvent:Connect(function(player,val,nckval)
 		local char = player.Character or player.CharacterAdded:Wait()
 		local reason = nil
 		local verkick = false
-		if nckval == "ReportCooldown" then
-			local r = player.PlayerGui:FindFirstChild("Panel"):FindFirstChild("UIManager"):FindFirstChild("RprtInterval")
-			if r ~= nil and r.Value ~= val then
-				reason = "Attempted to change the cooldown value for the report function on the client"
-				verkick = true
-			end
-		elseif nckval == "Flying" then
-			local f = char.Flying
-			if f.Value ~= val then
-				reason = "Attempted to change the flying value on the client"
-				verkick = true
-			end
-		elseif nckval == "Freeze" then
-			local fz = char.Frozen
-			if fz.Value ~= val then
-				reason = "Attempted to change the freeze value on the client"
-				verkick = true
-			end
-			
-		elseif nckval == "AddedGui" then
-			if not player.PlayerGui:FindFirstChild(val) then
-				reason = "Attempted to add the following object: "..val.." to "..player.Name.."'s GUI on the client"
-				verkick = true
-			end
-		elseif nckval == "AddedChar" then
-			if not char:FindFirstChild(val) then
-				reason = "Attempted to add the following object: "..val.." to "..player.Name.."'s character on the client"
-				verkick = true
-			end
-		elseif nckval == "AddedBP" then
-			if not player.Backpack:FindFirstChild(val) then
-				reason = "Attempted to add the following object: "..val.." to "..player.Name.."'s backpack on the client"
-				verkick = true
-			end
-		elseif nckval == "Rank" then
-			local r = char.Rank
-			if r ~= nil and r.Value ~= val then
-				reason = "Attempted to change the rank value within the character on the client"
-				verkick = true
-			end
-		elseif nckval == "CMDCooldown" then
-			local r = player.PlayerGui:FindFirstChild("Panel"):FindFirstChild("UIManager"):FindFirstChild("CMDCooldown")
-			if r ~= nil and r.Value ~= val then
-				reason = "Attempted to change the command cooldown on the client"
-				verkick = true
-			end
-		elseif nckval == "Admin Tool" then
-			reason = "Attempted to obtain the Admin Tool without actually being a staff member of the following game: "..game.Name
-			verkick = true
+		local isnotinignoretable = false
+		if table.find(anticheatignore,val,1) then
+			isnotinignoretable = true
 		end
-		if verkick and reason then
-			local AEK = require(AEMs["AntiExploitKick"])
-			AEK.TriggeredAE(player,reason)
+		if isnotinignoretable == false then
+			if nckval == "ReportCooldown" then
+				local r = player.PlayerGui:FindFirstChild("Panel"):FindFirstChild("UIManager"):FindFirstChild("RprtInterval")
+				if r ~= nil and r.Value ~= val then
+					reason = "Attempted to change the cooldown value for the report function on the client"
+					verkick = true
+				end
+			elseif nckval == "Flying" then
+				local f = char.Flying
+				if f.Value ~= val then
+					reason = "Attempted to change the flying value on the client"
+					verkick = true
+				end
+			elseif nckval == "Freeze" then
+				local fz = char.Frozen
+				if fz.Value ~= val then
+					reason = "Attempted to change the freeze value on the client"
+					verkick = true
+				end
+
+			elseif nckval == "AddedGui" then
+				if not player.PlayerGui:FindFirstChild(val) and val ~= "TextBox" and val ~= "ProximityPrompts" then
+					reason = "Attempted to add the following object: "..val.." to "..player.Name.."'s GUI on the client"
+					verkick = true
+				end
+			elseif nckval == "AddedChar" then
+				if not char:FindFirstChild(val) then
+					reason = "Attempted to add the following object: "..val.." to "..player.Name.."'s character on the client"
+					verkick = true
+				end
+			elseif nckval == "AddedBP" then
+				if not player.Backpack:FindFirstChild(val) then
+					reason = "Attempted to add the following object: "..val.." to "..player.Name.."'s backpack on the client"
+					verkick = true
+				end
+			elseif nckval == "Rank" then
+				local r = char.Rank
+				if r ~= nil and r.Value ~= val then
+					reason = "Attempted to change the rank value within the character on the client"
+					verkick = true
+				end
+			elseif nckval == "CMDCooldown" then
+				local r = player.PlayerGui:FindFirstChild("Panel"):FindFirstChild("UIManager"):FindFirstChild("CMDCooldown")
+				if r ~= nil and r.Value ~= val then
+					reason = "Attempted to change the command cooldown on the client"
+					verkick = true
+				end
+			elseif nckval == "Admin Tool" then
+				reason = "Attempted to obtain the Admin Tool without actually being a staff member of the following game: "..game.Name
+				verkick = true
+			end
+			if verkick and reason then
+				local AEK = require(AEMs["AntiExploitKick"])
+				AEK.TriggeredAE(player,reason)
+			end
 		end
 	end
 	
@@ -364,7 +388,6 @@ Players.PlayerAdded:Connect(function(player)
 		end
 	end
 end)
-
 
 --tp character to original pos if frozen
 
