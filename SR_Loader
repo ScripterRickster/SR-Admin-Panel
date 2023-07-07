@@ -1,5 +1,4 @@
 
-
 local SSS = game:GetService("ServerScriptService")
 local RS = game:GetService("ReplicatedStorage")
 
@@ -47,11 +46,15 @@ local staffdatastore = DDS:GetDataStore(game.PlaceId,"Staff")
 local webhookenabled = config.webhoookenabled
 local webhookid = config.webhookid
 
+-- chat version
+local chatversion 
 
 
 --checks if chat version is set to legacychatservice
 if TS.ChatVersion == Enum.ChatVersion.TextChatService then
-	error("Please ensure that the chat service is set to LegacyChatService for this admin panel to work as support for the new chat service has yet to be implemented.")
+	chatversion = "new"
+elseif TS.ChatVersion == Enum.ChatVersion.LegacyChatService then
+	chatversion = "legacy"
 end
 
 --framework parent and values
@@ -67,7 +70,7 @@ framework.Disabled = false
 
 local PKU = framework:FindFirstChild("PermKickedUsers")
 
-
+local CA = framework:FindFirstChild("ChannelAccess")
 
 
 
@@ -105,8 +108,8 @@ players.PlayerAdded:Connect(function(player)
 	
 	local framework2 = script.Parent:WaitForChild("SR_FrameWork")
 	local API = framework2["API's"]
-	local chattagAPI = require(API.ChatTagAPI)
-	local ChatService = require(SSS:WaitForChild("ChatServiceRunner"):WaitForChild("ChatService"))
+	
+	
 	
 	if stafflock.Value == true then
 		player:Kick("Server is currently locked. Please wait until it is unlocked.")
@@ -238,7 +241,6 @@ players.PlayerAdded:Connect(function(player)
 		
 		plrrank.Value = temprank
 		servplrrank.Value = temprank
-		--gui:Clone().Parent = player.PlayerGui
 		
 		checked = true
 		
@@ -250,7 +252,6 @@ players.PlayerAdded:Connect(function(player)
 		if s then
 			plrrank.Value = rank
 			servplrrank.Value = rank
-			--gui:Clone().Parent = player.PlayerGui
 		else
 			print("Admin Panel Encountered An Unknown Error.")
 			player:Kick("Failed to load the rank for the user. Please Rejoin.")
@@ -262,52 +263,70 @@ players.PlayerAdded:Connect(function(player)
 			
 			plrrank.Value = 1
 			servplrrank.Value = 1
-			--gui:Clone().Parent = player.PlayerGui
 			
 		elseif table.find(admin,player.UserId) or table.find(admin,player.Name) then
 		
 			plrrank.Value = 2
 			servplrrank.Value = 2
 			
-		
-			
-			--gui:Clone().Parent = player.PlayerGui
 		elseif table.find(headadmin,player.UserId) or table.find(headadmin,player.Name) then
 		
 			plrrank.Value = 3
 			servplrrank.Value = 3
 			
-		
-			
-			--gui:Clone().Parent = player.PlayerGui
 		elseif table.find(owner,player.UserId) or table.find(owner,player.Name) then
 			
 		
 			plrrank.Value = 4
 			servplrrank.Value = 4
 			
-		
-			
-			--gui:Clone().Parent = player.PlayerGui
-			
-			
 		end
 		checked = true
 		
 	end
 	
+	local plrchannelfolder = Instance.new("Folder")
+	plrchannelfolder.Name = player.UserId
+	plrchannelfolder.Parent = CA
+	
 	if servplrrank.Value > 0 then
 		apt:Clone().Parent = player.Backpack
 	end
-	
-	--sets chat tag
-	ChatService.SpeakerAdded:Connect(function(speakerName)
-		chattagAPI.SetTag(speakerName)
+	if chatversion == "legacy" then
+		local chattagAPI = require(API.LegacyChatTagAPI)
+		local ChatService = require(SSS:WaitForChild("ChatServiceRunner"):WaitForChild("ChatService"))
+		--sets chat tag
+		ChatService.SpeakerAdded:Connect(function(speakerName)
+			chattagAPI.SetTag(speakerName)
+		end)
+	else
+		local textchannels = game.TextChatService:WaitForChild("TextChannels"):GetChildren()
+
+		for i=1,#textchannels do
+			if textchannels[i]:FindFirstChild(player.DisplayName) then
+				local channelval = Instance.new("StringValue")
+				channelval.Value = textchannels[i].Name
+				channelval.Name = textchannels[i].Name
+				channelval.Parent = plrchannelfolder
+			end
+		end
+	end
+end)
+
+-- tool stuff
+
+game.Players.PlayerAdded:Connect(function(plr)
+	plr.CharacterAdded:Connect(function(char)
+		local humanoid = char:WaitForChild("Humanoid")
+		humanoid.Died:Connect(function()
+			local v = plr.Backpack:FindFirstChild("Admin Panel")
+			if v then
+				v:Destroy()
+			end
+			plr.CharacterAdded:Wait()
+			script["Admin Panel"]:Clone().Parent = plr.Backpack
+			
+		end)
 	end)
-	
-	
-	
-	
-	
 end)
 
