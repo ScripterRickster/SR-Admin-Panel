@@ -144,7 +144,6 @@ game.Players.PlayerAdded:Connect(function(plr)
 				if string.lower(parameters[2]) == "time" or string.lower(parameters[2]) == "team" or string.lower(parameters[2]) == "vehicle" or parameters[2] == "Tool" or string.lower(parameters[2]) == "rank" or string.lower(parameters[2]) == "lock" then
 					parameters[1] = string.upper(string.sub(tostring(parameters[1]), 1, 1))..string.sub(tostring(parameters[1]), 2, -1)
 					parameters[2] = string.upper(string.sub(tostring(parameters[2]), 1, 1))..string.sub(tostring(parameters[2]), 2, -1)
-					print(parameters[1] .. " " .. parameters[2])
 					action = parameters[1] .. " " .. parameters[2]
 					actionindex = 3
 				else
@@ -170,7 +169,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 					
 					if action == "mute" or action == "unmute" or action == "warn" or action == "kick" or action == "ban" or action == "bring" or action == "Unban" or action == "perm kick" then
 						local optreason = ""
-						for i=actionindex+1,paramlength do
+						for i=actionindex,paramlength do
 							optreason = optreason .. parameters[i] .. " "
 						end
 						if optreason ~= "" and optreason ~= nil then
@@ -188,7 +187,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 						actionreq.ExecuteCommand(targ,plr,staffrank,targrank)
 					elseif action == "fly" or action == "set team"  or action == "give tool" or action == "remove tool" or action == "set rank" then
 						local optextraval = ""
-						for i=actionindex+1,paramlength do
+						for i=actionindex,paramlength do
 							optextraval = optextraval .. parameters[i] .. " "
 						end
 						if optextraval ~= "" and optextraval ~= nil then
