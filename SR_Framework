@@ -141,10 +141,14 @@ game.Players.PlayerAdded:Connect(function(plr)
 				if #parameters <= 1 then return end -- checking if there's other variables that are required within the chat command or not
 				local action
 				local actionindex
-				if parameters[2] == "Time" or parameters[2] == "Team" or parameters[2] == "Vehicle" or parameters[2] == "Tool" or parameters[2] == "Rank" or parameters[2] == "Lock" then
+				if string.lower(parameters[2]) == "time" or string.lower(parameters[2]) == "team" or string.lower(parameters[2]) == "vehicle" or parameters[2] == "Tool" or string.lower(parameters[2]) == "rank" or string.lower(parameters[2]) == "lock" then
+					parameters[1] = string.upper(string.sub(tostring(parameters[1]), 1, 1))..string.sub(tostring(parameters[1]), 2, -1)
+					parameters[2] = string.upper(string.sub(tostring(parameters[2]), 1, 1))..string.sub(tostring(parameters[2]), 2, -1)
+					print(parameters[1] .. " " .. parameters[2])
 					action = parameters[1] .. " " .. parameters[2]
 					actionindex = 3
 				else
+					parameters[1] = string.upper(string.sub(tostring(parameters[1]), 1, 1))..string.sub(tostring(parameters[1]), 2, -1)
 					action = parameters[1]
 					actionindex = 2
 				end
@@ -158,32 +162,6 @@ game.Players.PlayerAdded:Connect(function(plr)
 				end
 				
 				if action and targ ~= "" and targ ~= nil then
-					action = string.lower(tostring(action))
-					if action == "mute" then
-						action = "Mute"
-					elseif action == "unmute" then
-						action = "Unmute"
-					elseif action == "warn" then
-						action = "Warn"
-					elseif action == "kick" then
-						action = "Kick"
-					elseif action == "perm kick" or action == "pkick" then
-						action = "Perm Kick"
-					elseif action == "ban" then
-						action = "Ban"
-					elseif action == "unban" then
-						action = "Unban"
-					elseif action == "bring" then
-						action = "Bring"
-					elseif action == "teleport to" or action == "tp" then
-						action = "Teleport To"
-					elseif action == "shutdown" then
-						action = "Shutdown"
-					elseif action == "fly" then
-						action = "Fly"
-					elseif action == "unfly" then
-						action = "Unfly"
-					end
 					local actionreq = require(Commands[action])
 					local staffrank = PlrRanks[plr.Name].Value
 					local targrank = PlrRanks[targ.Name].Value
@@ -208,7 +186,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 						end
 					elseif action == "freeze" or action == "unfreeze" or action == "unfly" or action == "view" or action == "kill" or action == "god" or action == "ungod" then
 						actionreq.ExecuteCommand(targ,plr,staffrank,targrank)
-					elseif action == "Fly" or action == "Set Team"  or action == "Give Tool" or action == "Remove Tool" or action == "Set Rank" then
+					elseif action == "fly" or action == "set team"  or action == "give tool" or action == "remove tool" or action == "set rank" then
 						local optextraval = ""
 						for i=actionindex+1,paramlength do
 							optextraval = optextraval .. parameters[i] .. " "
@@ -216,7 +194,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 						if optextraval ~= "" and optextraval ~= nil then
 							actionreq.ExecuteCommand(targ,plr,staffrank,targrank,optextraval)
 						end
-					elseif action == "Set Time" or action == "Announce" or action == "Spawn Vehicle" then
+					elseif action == "set time" or action == "announce" or action == "spawn vehicle" then
 						local optextraval = ""
 						for i=actionindex,paramlength do
 							optextraval = optextraval .. parameters[i] .. " "
@@ -224,7 +202,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 						if optextraval ~= "" and optextraval ~= nil then
 							actionreq.ExecuteCommand(plr,staffrank,optextraval)
 						end
-					elseif action == "Staff Lock" then
+					elseif action == "staff lock" then
 						local optextraval = parameters[paramlength]
 						local optreason = ""
 						for i=actionindex,paramlength-1 do
