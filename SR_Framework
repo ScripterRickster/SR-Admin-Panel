@@ -138,6 +138,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 			if string.find(tostring(cmd),tostring(ChatCommandPrefix),1,false) then
 				cmd = string.gsub(tostring(cmd),tostring(ChatCommandPrefix),"")
 				local parameters = string.split(tostring(cmd)," ")
+				if #parameters <= 1 then return end -- checking if there's other variables that are required within the chat command or not
 				local action
 				local actionindex
 				if parameters[2] == "Time" or parameters[2] == "Team" or parameters[2] == "Vehicle" or parameters[2] == "Tool" or parameters[2] == "Rank" or parameters[2] == "Lock" then
@@ -157,6 +158,32 @@ game.Players.PlayerAdded:Connect(function(plr)
 				end
 				
 				if action and targ ~= "" and targ ~= nil then
+					action = string.lower(tostring(action))
+					if action == "mute" then
+						action = "Mute"
+					elseif action == "unmute" then
+						action = "Unmute"
+					elseif action == "warn" then
+						action = "Warn"
+					elseif action == "kick" then
+						action = "Kick"
+					elseif action == "perm kick" or action == "pkick" then
+						action = "Perm Kick"
+					elseif action == "ban" then
+						action = "Ban"
+					elseif action == "unban" then
+						action = "Unban"
+					elseif action == "bring" then
+						action = "Bring"
+					elseif action == "teleport to" or action == "tp" then
+						action = "Teleport To"
+					elseif action == "shutdown" then
+						action = "Shutdown"
+					elseif action == "fly" then
+						action = "Fly"
+					elseif action == "unfly" then
+						action = "Unfly"
+					end
 					local actionreq = require(Commands[action])
 					local staffrank = PlrRanks[plr.Name].Value
 					local targrank = PlrRanks[targ.Name].Value
@@ -166,15 +193,15 @@ game.Players.PlayerAdded:Connect(function(plr)
 					if action == "mute" or action == "unmute" or action == "warn" or action == "kick" or action == "ban" or action == "bring" or action == "Unban" or action == "perm kick" then
 						local optreason = ""
 						for i=actionindex+1,paramlength do
-							optreason = optreason + parameters[i] + " "
+							optreason = optreason .. parameters[i] .. " "
 						end
 						if optreason ~= "" and optreason ~= nil then
 							actionreq.ExecuteCommand(targ,plr,staffrank,targrank,optreason)
 						end
 					elseif action == "shutdown" then
 						local optreason = ""
-						for i=actionindex+1,paramlength do
-							optreason = optreason + parameters[i] + " "
+						for i=actionindex,paramlength do
+							optreason = optreason .. parameters[i] .. " "
 						end
 						if optreason ~= "" and optreason ~= nil then
 							actionreq.ExecuteCommand(plr,staffrank,optreason)
@@ -184,15 +211,15 @@ game.Players.PlayerAdded:Connect(function(plr)
 					elseif action == "Fly" or action == "Set Team"  or action == "Give Tool" or action == "Remove Tool" or action == "Set Rank" then
 						local optextraval = ""
 						for i=actionindex+1,paramlength do
-							optextraval = optextraval + parameters[i] + " "
+							optextraval = optextraval .. parameters[i] .. " "
 						end
 						if optextraval ~= "" and optextraval ~= nil then
 							actionreq.ExecuteCommand(targ,plr,staffrank,targrank,optextraval)
 						end
 					elseif action == "Set Time" or action == "Announce" or action == "Spawn Vehicle" then
 						local optextraval = ""
-						for i=actionindex+1,paramlength do
-							optextraval = optextraval + parameters[i] + " "
+						for i=actionindex,paramlength do
+							optextraval = optextraval .. parameters[i] .. " "
 						end
 						if optextraval ~= "" and optextraval ~= nil then
 							actionreq.ExecuteCommand(plr,staffrank,optextraval)
@@ -200,8 +227,8 @@ game.Players.PlayerAdded:Connect(function(plr)
 					elseif action == "Staff Lock" then
 						local optextraval = parameters[paramlength]
 						local optreason = ""
-						for i=actionindex+1,paramlength-1 do
-							optreason = optreason + parameters[i] + " "
+						for i=actionindex,paramlength-1 do
+							optreason = optreason .. parameters[i] .. " "
 						end
 						if optreason ~= nil and optreason ~= "" and optextraval ~= "" and optextraval ~= nil then
 							actionreq.ExecuteCommand(plr,staffrank,optreason,optextraval)
