@@ -138,7 +138,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 			if string.find(tostring(cmd),tostring(ChatCommandPrefix),1,false) then
 				cmd = string.gsub(tostring(cmd),tostring(ChatCommandPrefix),"")
 				local parameters = string.split(tostring(cmd)," ")
-				if #parameters <= 1 then return end -- checking if there's other variables that are required within the chat command or not
+				if #parameters <= 1 then return end 
 				local action
 				local actionindex
 				if string.lower(parameters[2]) == "time" or string.lower(parameters[2]) == "team" or string.lower(parameters[2]) == "vehicle" or parameters[2] == "Tool" or string.lower(parameters[2]) == "rank" or string.lower(parameters[2]) == "lock" then
@@ -156,9 +156,11 @@ game.Players.PlayerAdded:Connect(function(plr)
 				local attemptedplr = game.Players:FindFirstChild(parameters[actionindex])
 				if attemptedplr then
 					targ = attemptedplr
+					actionindex += 1
 				else
 					targ = plr
 				end
+				if attemptedplr == nil then return end
 				
 				if action and targ ~= "" and targ ~= nil then
 					local actionreq = require(Commands[action])
