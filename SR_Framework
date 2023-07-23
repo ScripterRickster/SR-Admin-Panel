@@ -139,13 +139,17 @@ game.Players.PlayerAdded:Connect(function(plr)
 				cmd = string.gsub(tostring(cmd),tostring(ChatCommandPrefix),"")
 				local parameters = string.split(tostring(cmd)," ")
 				local action
+				local actionindex
 				if parameters[2] == "Time" or parameters[2] == "Team" or parameters[2] == "Vehicle" or parameters[2] == "Tool" or parameters[2] == "Rank" or parameters[2] == "Lock" then
 					action = parameters[1] .. " " .. parameters[2]
+					actionindex = 3
 				else
 					action = parameters[1]
+					actionindex = 2
 				end
 				local targ
-				local attemptedplr = game.Players:FindFirstChild(parameters[3])
+				local starterindex
+				local attemptedplr = game.Players:FindFirstChild(parameters[actionindex])
 				if attemptedplr then
 					targ = attemptedplr
 				else
@@ -161,7 +165,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 					
 					if action == "mute" or action == "unmute" or action == "warn" or action == "kick" or action == "ban" or action == "bring" or action == "Unban" or action == "perm kick" then
 						local optreason = ""
-						for i=4,paramlength do
+						for i=actionindex+1,paramlength do
 							optreason = optreason + parameters[i] + " "
 						end
 						if optreason ~= "" and optreason ~= nil then
@@ -169,7 +173,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 						end
 					elseif action == "shutdown" then
 						local optreason = ""
-						for i=4,paramlength do
+						for i=actionindex+1,paramlength do
 							optreason = optreason + parameters[i] + " "
 						end
 						if optreason ~= "" and optreason ~= nil then
@@ -179,7 +183,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 						actionreq.ExecuteCommand(targ,plr,staffrank,targrank)
 					elseif action == "Fly" or action == "Set Team"  or action == "Give Tool" or action == "Remove Tool" or action == "Set Rank" then
 						local optextraval = ""
-						for i=4,paramlength do
+						for i=actionindex+1,paramlength do
 							optextraval = optextraval + parameters[i] + " "
 						end
 						if optextraval ~= "" and optextraval ~= nil then
@@ -187,7 +191,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 						end
 					elseif action == "Set Time" or action == "Announce" or action == "Spawn Vehicle" then
 						local optextraval = ""
-						for i=4,paramlength do
+						for i=actionindex+1,paramlength do
 							optextraval = optextraval + parameters[i] + " "
 						end
 						if optextraval ~= "" and optextraval ~= nil then
@@ -196,7 +200,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 					elseif action == "Staff Lock" then
 						local optextraval = parameters[paramlength]
 						local optreason = ""
-						for i=4,paramlength-1 do
+						for i=actionindex+1,paramlength-1 do
 							optreason = optreason + parameters[i] + " "
 						end
 						if optreason ~= nil and optreason ~= "" and optextraval ~= "" and optextraval ~= nil then
