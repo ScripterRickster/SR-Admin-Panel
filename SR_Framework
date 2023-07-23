@@ -1,4 +1,5 @@
 wait(0.01)
+
 --services
 
 local DDS = game:GetService("DataStoreService")
@@ -90,6 +91,10 @@ local removetools = {}
 local anticheat = config.anticheatenabled
 local anticheatignore = config.anticheatignore
 
+-- Chat Command Prefix
+
+local ChatCommandPrefix = config.chatcmdprefix
+
 
 
 
@@ -116,13 +121,97 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 				cmd.ExecuteCommand(targ,player,staffrank,targrank)
 			elseif action == "Fly" or action == "Set Team"  or action == "Give Tool" or action == "Remove Tool" or action == "Set Rank" and optextraval then
 				cmd.ExecuteCommand(targ,player,staffrank,targrank,optextraval)
-			elseif action == "Set Time" or action == "Set Server Message" or action == "Spawn Vehicle"  and optextraval then
+			elseif action == "Set Time" or action == "Announce" or action == "Spawn Vehicle"  and optextraval then
 				cmd.ExecuteCommand(player,staffrank,optextraval)
 			elseif action == "Staff Lock" and optextraval ~= "" and optreason ~= "" then
 				cmd.ExecuteCommand(player,staffrank,optreason,optextraval)
 			end
 		end
 	end
+end)
+
+-- Chat Commands
+
+game.Players.PlayerAdded:Connect(function(plr)
+	plr.Chatted:Connect(function(cmd)
+		if cmd then
+			if string.find(tostring(cmd),tostring(ChatCommandPrefix),1,false) then
+				string.gsub(tostring(cmd),tostring(ChatCommandPrefix),"")
+				local parameters = string.split(tostring(cmd)," ")
+				local action
+				if parameters[2] == "Time" or parameters[2] == "Team" or parameters[2] == "Vehicle" or parameters[2] == "Tool" or parameters[2] == "Rank" or parameters[2] == "Lock" then
+					action = parameters[1] .. " " .. parameters[2]
+				else
+					action = parameters[1]
+				end
+				local targ
+				local attemptedplr = game.Players:FindFirstChild(parameters[3])
+				if attemptedplr then
+					targ = attemptedplr
+				else
+					targ = plr
+				end
+				
+				if action and targ ~= "" and targ ~= nil then
+					local actionreq = require(Commands[action])
+					local staffrank = PlrRanks[plr.Name].Value
+					local targrank = PlrRanks[targ.Name].Value
+					action = string.lower(tostring(action))
+					local paramlength = #parameters
+					
+					if action == "mute" or action == "unmute" or action == "warn" or action == "kick" or action == "ban" or action == "bring" or action == "Unban" or action == "perm kick" then
+						local optreason = ""
+						for i=4,paramlength do
+							optreason = optreason + parameters[i] + " "
+						end
+						if optreason ~= "" and optreason ~= nil then
+							actionreq.ExecuteCommand(targ,plr,staffrank,targrank,optreason)
+						end
+					elseif action == "shutdown" then
+						local optreason = ""
+						for i=4,paramlength do
+							optreason = optreason + parameters[i] + " "
+						end
+						if optreason ~= "" and optreason ~= nil then
+							actionreq.ExecuteCommand(plr,staffrank,optreason)
+						end
+					elseif action == "freeze" or action == "unfreeze" or action == "unfly" or action == "view" or action == "kill" or action == "god" or action == "ungod" then
+						actionreq.ExecuteCommand(targ,plr,staffrank,targrank)
+					elseif action == "Fly" or action == "Set Team"  or action == "Give Tool" or action == "Remove Tool" or action == "Set Rank" then
+						local optextraval = ""
+						for i=4,paramlength do
+							optextraval = optextraval + parameters[i] + " "
+						end
+						if optextraval ~= "" and optextraval ~= nil then
+							actionreq.ExecuteCommand(targ,plr,staffrank,targrank,optextraval)
+						end
+					elseif action == "Set Time" or action == "Announce" or action == "Spawn Vehicle" then
+						local optextraval = ""
+						for i=4,paramlength do
+							optextraval = optextraval + parameters[i] + " "
+						end
+						if optextraval ~= "" and optextraval ~= nil then
+							actionreq.ExecuteCommand(plr,staffrank,optextraval)
+						end
+					elseif action == "Staff Lock" then
+						local optextraval = parameters[paramlength]
+						local optreason = ""
+						for i=4,paramlength-1 do
+							optreason = optreason + parameters[i] + " "
+						end
+						if optreason ~= nil and optreason ~= "" and optextraval ~= "" and optextraval ~= nil then
+							actionreq.ExecuteCommand(plr,staffrank,optreason,optextraval)
+						end
+					end
+					
+					
+				end
+				
+				
+				
+			end
+		end
+	end)
 end)
 
 --Report Event
