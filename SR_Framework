@@ -91,8 +91,8 @@ local removetools = {}
 local anticheat = config.anticheatenabled
 local anticheatignore = config.anticheatignore
 
--- Chat Command Prefix
-
+-- Chat Command Stuff
+local ChatCommandsEnabled = config.chatcmdsenabled
 local ChatCommandPrefix = config.chatcmdprefix
 
 
@@ -134,9 +134,9 @@ end)
 
 game.Players.PlayerAdded:Connect(function(plr)
 	plr.Chatted:Connect(function(cmd)
-		if cmd then
+		if cmd and ChatCommandsEnabled == true then
 			if string.find(tostring(cmd),tostring(ChatCommandPrefix),1,false) then
-				string.gsub(tostring(cmd),tostring(ChatCommandPrefix),"")
+				cmd = string.gsub(tostring(cmd),tostring(ChatCommandPrefix),"")
 				local parameters = string.split(tostring(cmd)," ")
 				local action
 				if parameters[2] == "Time" or parameters[2] == "Team" or parameters[2] == "Vehicle" or parameters[2] == "Tool" or parameters[2] == "Rank" or parameters[2] == "Lock" then
