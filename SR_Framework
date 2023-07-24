@@ -145,18 +145,25 @@ game.Players.PlayerAdded:Connect(function(plr)
 				if #parameters <= 1 then return end 
 				local action
 				local actionindex
-				if string.lower(parameters[2]) == "time" or string.lower(parameters[2]) == "team" or string.lower(parameters[2]) == "vehicle" or parameters[2] == "Tool" or string.lower(parameters[2]) == "rank" or string.lower(parameters[2]) == "lock" or string.lower(parameters[2]) == "message" then
-					parameters[1] = string.upper(string.sub(tostring(parameters[1]), 1, 1))..string.sub(tostring(parameters[1]), 2, -1)
-					parameters[2] = string.upper(string.sub(tostring(parameters[2]), 1, 1))..string.sub(tostring(parameters[2]), 2, -1)
-					action = parameters[1] .. " " .. parameters[2]
-					actionindex = 3
-				else
-					parameters[1] = string.upper(string.sub(tostring(parameters[1]), 1, 1))..string.sub(tostring(parameters[1]), 2, -1)
-					action = parameters[1]
-					actionindex = 2
+				local allcmds = Commands:GetChildren()
+				local v1 = string.upper(string.sub(tostring(parameters[1]), 1, 1))..string.sub(tostring(parameters[1]), 2, -1)
+				local v2 = v1 ..  " " .. string.upper(string.sub(tostring(parameters[2]), 1, 1))..string.sub(tostring(parameters[2]), 2, -1)
+				for i=1,#allcmds do
+					local alias = require(allcmds[i])
+					local cmdloc = false
+					if string.lower(v1) == string.lower(alias.ChatCMDAlias) or string.lower(v1) == string.lower(allcmds[i].Name) then
+						actionindex = 2
+						cmdloc = true
+					elseif string.lower(v2) == string.lower(alias.ChatCMDAlias) or string.lower(v2) == string.lower(allcmds[i].Name) then
+						actionindex = 3
+						cmdloc = true
+					end
+					if cmdloc == true then
+						action = allcmds[i].Name
+						break
+					end
 				end
 				local targ
-				local starterindex
 				local attemptedplr = game.Players:FindFirstChild(string.gsub(tostring(parameters[actionindex])," ",""))
 				if attemptedplr  then
 					targ = attemptedplr
@@ -257,7 +264,7 @@ RprtEvent.OnServerEvent:Connect(function(plr,targ,reason)
 end)
 
 
--- Removing Admin Panel UI From Player
+-- Removing The UI From & Giving The UI To The Player
 ManageUI.OnServerEvent:Connect(function(plr,action,targ)
 	if plr and action then
 		local plrgui = plr.PlayerGui
@@ -282,7 +289,7 @@ ManageUI.OnServerEvent:Connect(function(plr,action,targ)
 	end
 end)
 
--- Get Chat Tags for new textchatservice
+-- Get Chat Tags For New TextChatService
 GetChatTagInfo.OnServerInvoke = function(plr,targ)
 	if plr and targ and SCTenabled == true then
 		local targplr = game.Players:FindFirstChild(targ)
