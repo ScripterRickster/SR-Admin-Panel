@@ -106,12 +106,13 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 		local targ = game.Players[opttarg]
 		local staffrank = PlrRanks[player.Name].Value
 		local targrank = PlrRanks[opttarg].Value
-
+		
 		
 		if Commands:FindFirstChild(action) then
 			
-
 			local cmd = require(Commands[action])
+			
+			
 			
 			if action == "Mute" or action == "Unmute" or action == "Warn" or action == "Kick" or action == "Ban" or action == "Bring" or action == "Unban" or action == "Perm Kick" and optreason then
 				cmd.ExecuteCommand(targ,player,staffrank,targrank,optreason)
@@ -125,12 +126,15 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 				cmd.ExecuteCommand(player,staffrank,optextraval)
 			elseif action == "Staff Lock" and optextraval ~= "" and optreason ~= "" then
 				cmd.ExecuteCommand(player,staffrank,optreason,optextraval)
+			elseif action == "Private Message" and opttarg and optextraval ~= "" then
+				
+				cmd.ExecuteCommand(opttarg,player,staffrank,optextraval)
 			end
 		end
 	end
 end)
 
--- Chat Commands
+-- Chat Commands (it is not recommended to modify this section unless you know exactly what you're doing)
 
 game.Players.PlayerAdded:Connect(function(plr)
 	plr.Chatted:Connect(function(cmd)
@@ -141,7 +145,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 				if #parameters <= 1 then return end 
 				local action
 				local actionindex
-				if string.lower(parameters[2]) == "time" or string.lower(parameters[2]) == "team" or string.lower(parameters[2]) == "vehicle" or parameters[2] == "Tool" or string.lower(parameters[2]) == "rank" or string.lower(parameters[2]) == "lock" then
+				if string.lower(parameters[2]) == "time" or string.lower(parameters[2]) == "team" or string.lower(parameters[2]) == "vehicle" or parameters[2] == "Tool" or string.lower(parameters[2]) == "rank" or string.lower(parameters[2]) == "lock" or string.lower(parameters[2]) == "message" then
 					parameters[1] = string.upper(string.sub(tostring(parameters[1]), 1, 1))..string.sub(tostring(parameters[1]), 2, -1)
 					parameters[2] = string.upper(string.sub(tostring(parameters[2]), 1, 1))..string.sub(tostring(parameters[2]), 2, -1)
 					action = parameters[1] .. " " .. parameters[2]
@@ -154,7 +158,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 				local targ
 				local starterindex
 				local attemptedplr = game.Players:FindFirstChild(string.gsub(tostring(parameters[actionindex])," ",""))
-				if attemptedplr then
+				if attemptedplr  then
 					targ = attemptedplr
 					actionindex += 1
 				else
@@ -218,6 +222,18 @@ game.Players.PlayerAdded:Connect(function(plr)
 						end
 						if optreason ~= nil and optreason ~= "" and optextraval ~= "" and optextraval ~= nil then
 							actionreq.ExecuteCommand(plr,staffrank,optreason,optextraval)
+						end
+					elseif action == "private message" then
+						local optextraval = ""
+						for i=actionindex,paramlength do
+							if i == paramlength then
+								optextraval = optextraval .. parameters[i]
+							else
+								optextraval = optextraval .. parameters[i] .. " "
+							end
+						end
+						if optextraval ~= "" and optextraval ~= nil then
+							actionreq.ExecuteCommand(targ,plr,staffrank,optextraval)
 						end
 					end
 					
