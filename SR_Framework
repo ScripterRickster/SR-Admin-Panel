@@ -128,7 +128,7 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 				cmd.ExecuteCommand(player,staffrank,optreason,optextraval)
 			elseif action == "Private Message" and opttarg and optextraval ~= "" then
 				
-				cmd.ExecuteCommand(opttarg,player,staffrank,optextraval)
+				cmd.ExecuteCommand(targ,player,staffrank,optextraval)
 			end
 		end
 	end
