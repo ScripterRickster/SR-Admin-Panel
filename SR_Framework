@@ -153,7 +153,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 				end
 				local targ
 				local starterindex
-				local attemptedplr = game.Players:FindFirstChild(parameters[actionindex])
+				local attemptedplr = game.Players:FindFirstChild(string.gsub(tostring(parameters[actionindex])," ",""))
 				if attemptedplr then
 					targ = attemptedplr
 					actionindex += 1
