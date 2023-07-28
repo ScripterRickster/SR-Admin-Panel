@@ -120,22 +120,20 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 				cmd.ExecuteCommand(player,staffrank,optreason)
 			elseif action == "Freeze" or action == "Unfreeze" or action == "Unfly" or action == "View" or action == "Kill" or action == "God" or action == "Ungod" then
 				cmd.ExecuteCommand(targ,player,staffrank,targrank)
-			elseif action == "Fly" or action == "Set Team"  or action == "Give Tool" or action == "Remove Tool" or action == "Set Rank" and optextraval then
+			elseif action == "Fly" or action == "Set Team"  or action == "Give Tool" or action == "Remove Tool" or action == "Set Rank" or action == "Set JumpPower" or action == "Set Walkspeed" and optextraval then
 				cmd.ExecuteCommand(targ,player,staffrank,targrank,optextraval)
 			elseif action == "Set Time" or action == "Announce" or action == "Spawn Vehicle"  and optextraval then
 				cmd.ExecuteCommand(player,staffrank,optextraval)
 			elseif action == "Staff Lock" and optextraval ~= "" and optreason ~= "" then
 				cmd.ExecuteCommand(player,staffrank,optreason,optextraval)
 			elseif action == "Private Message" and opttarg and optextraval ~= "" then
-				
 				cmd.ExecuteCommand(targ,player,staffrank,optextraval)
 			end
 		end
 	end
 end)
 
--- Chat Commands (it is not recommended to modify this section unless you know exactly what you're doing)
-
+-- Chat Commands (it i s not recommended to modify this section unless you know exactly what you're doing)
 game.Players.PlayerAdded:Connect(function(plr)
 	plr.Chatted:Connect(function(cmd)
 		if cmd and ChatCommandsEnabled == true then
@@ -242,13 +240,22 @@ game.Players.PlayerAdded:Connect(function(plr)
 						if optextraval ~= "" and optextraval ~= nil then
 							actionreq.ExecuteCommand(targ,plr,staffrank,optextraval)
 						end
+					elseif action == "set walkspeed" or action == "set jumppower" then
+						local optextraval = ""
+						for i=actionindex,paramlength do
+							if i == paramlength then
+								optextraval = optextraval .. parameters[i]
+							else
+								optextraval = optextraval .. parameters[i] .. " "
+							end
+						end
+						if optextraval ~= nil and optextraval ~= "" then
+							if tonumber(optextraval) then
+								actionreq.ExecuteCommand(targ,plr,staffrank,targrank,optextraval)
+							end
+						end
 					end
-					
-					
 				end
-				
-				
-				
 			end
 		end
 	end)
@@ -347,6 +354,7 @@ VerVent.OnServerEvent:Connect(function(player,val,nckval)
 	if val and nckval and anticheat == true  then
 		
 		local char = player.Character or player.CharacterAdded:Wait()
+		local hum = char.Humanoid
 		local reason = nil
 		local verkick = false
 		local isnotinignoretable = false
@@ -403,6 +411,18 @@ VerVent.OnServerEvent:Connect(function(player,val,nckval)
 			elseif nckval == "Admin Tool" then
 				reason = "Attempted to obtain the Admin Tool without actually being a staff member of the following game: "..game.Name
 				verkick = true
+			elseif nckval == "WalkSpeed" then
+				local wspeed = hum.WalkSpeed
+				if val ~= wspeed then
+					reason = "Attempted to change their character's walkspeed from: **"..tostring(wspeed).."** to: **"..tostring(val).."** on the client."
+					verkick = true
+				end
+			elseif nckval == "JumpPower" then
+				local jpower = hum.JumpPower
+				if val ~= jpower then
+					reason = "Attempted to change their character's jump-power from: **"..tostring(jpower).."** to: **"..tostring(val).."** on the client."
+					verkick = true
+				end
 			end
 			if verkick and reason then
 				local AEK = require(AEMs["AntiExploitKick"])
