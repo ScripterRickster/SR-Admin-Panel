@@ -1,0 +1,16 @@
+repeat wait() until script.Parent.Name ~= "AntiExploitModules"
+
+local f = script.Parent:FindFirstChild("CkVal")
+
+local vervent = game.ReplicatedStorage:FindFirstChild("SRAdminEvents"):FindFirstChild("VerVent")
+
+if not vervent then
+	game.Players.LocalPlayer:Kick("Anti Exploit Measures have been triggered. Please rejoin if this is a mistake.")
+end
+
+if not f then
+	vervent:FireServer("Ckval","None")
+else
+	wait()
+	script:Destroy()
+end
