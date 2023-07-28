@@ -7,23 +7,8 @@ local plrgui = plr.PlayerGui
 local plrscripts = plr.PlayerScripts
 local plrbp = plr.Backpack
 
-local charparts = char:GetChildren()
-local x = 0
-for i=1,#charparts do
-	if charparts[i]:IsA("BasePart") or charparts[i]:IsA("UnionOperation") or charparts[i]:IsA("MeshPart") then
-		x = x+1
-		
-	end
-end
-
 local hum = char:WaitForChild("Humanoid")
 
-if x>=15 then
-	script.Parent = script.Parent:WaitForChild("RightLowerArm")
-elseif x<= 7 then
-	script.Parent = script.Parent:WaitForChild("Right Arm")
-end
- 
 local fly = script.Parent.Parent:WaitForChild("Flying")
 
 local frozen = script.Parent.Parent:WaitForChild("Frozen")
@@ -58,6 +43,14 @@ end)
 
 plrbp.ChildAdded:Connect(function(v)
 	vervent:FireServer(v.Name,"AddedBP")
+end)
+
+hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+	vervent:FireServer(hum.WalkSpeed,"WalkSpeed")
+end)
+
+hum:GetPropertyChangedSignal("JumpPower"):Connect(function()
+	vervent:FireServer(hum.JumpPower,"JumpPower")
 end)
 
 
