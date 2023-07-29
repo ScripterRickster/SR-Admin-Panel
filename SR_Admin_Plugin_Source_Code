@@ -23,6 +23,12 @@ installbutton.Click:Connect(function()
 			f[i]:Destroy()
 		end
 	end
+	local preUIBlur = game.Lighting:GetChildren()
+	for i=1,#preUIBlur do
+		if preUIBlur[i].Name == "UIBlur" then
+			preUIBlur[i]:Destroy()
+		end
+	end
 
 	local newUIBlur = script:WaitForChild("UIBlur"):Clone()
 
