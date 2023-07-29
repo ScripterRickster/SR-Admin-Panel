@@ -11,16 +11,18 @@ local config = {
 	webhookid = ""; -- Make sure to input a valid discord webhook, otherwise the admin panel will not be able to successfully send the webhooks, and may cause the admin panel to break.  Ex: "https://discord.com/api/webhooks/1033725234232184852/Hscgw7r9A4iDWGfr6aGorHo2B2759UOD2YM0c89W_kTzjTW-8BWiO7Sa-uwngyAHDIuL" [if u try using the webhook, then ur dumb (no offence meant)]
 	-- THIS IS IF THE ADMIN SYSTEM ISNT FOR A GROUP. PUT PLAYER'S ID (RECOMMENDED) OR PLAYER'S USERNAME (NOT RECOMMENDED). FOR PLAYER'S USERNAME, MAKE SURE USERNAME IS IN QUOTES, AND A COMMA IS AFTER THE USERNAME, FOR PLAYER ID, JUST SIMPLY PUT THE USER'S ID AND A COMMA AFTER IT.
 	mods = {
-		
-		
+		--"exampleusername",
+		--6969696969,
 	};	
 	
 	admins = {
-
+		--"exampleusername",
+		--6969696969,
 	};
 	
 	headadmin = {
-
+		--"exampleusername",
+		--6969696969,
 	};		
 	
 	owner = {
