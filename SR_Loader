@@ -1,4 +1,3 @@
-
 local SSS = game:GetService("ServerScriptService")
 local RS = game:GetService("ReplicatedStorage")
 
@@ -71,6 +70,9 @@ framework.Disabled = false
 local PKU = framework:FindFirstChild("PermKickedUsers")
 
 local CA = framework:FindFirstChild("ChannelAccess")
+
+local UIBlur = framework:FindFirstChild("UIs"):FindFirstChild("UIBlur")
+UIBlur.Parent = game.Lighting
 
 
 
