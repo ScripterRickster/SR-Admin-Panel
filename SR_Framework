@@ -30,6 +30,8 @@ local BanStore = DDS:GetDataStore(game.PlaceId,"Banned_Users")
 
 local StaffStore = DDS:GetDataStore(game.PlaceId,"Staff")
 
+local ActiveGlobalAnnouncements = DDS:GetDataStore(game.PlaceId,"Global_Announcements")
+
 -- chatversion
 local chatversion = TCS.ChatVersion
 
@@ -102,10 +104,16 @@ local ChatCommandPrefix = config.chatcmdprefix
 
 ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optextraval)
 	if player and action then
-		
-		local targ = game.Players[opttarg]
+		local targ = nil
 		local staffrank = PlrRanks[player.Name].Value
-		local targrank = PlrRanks[opttarg].Value
+		local targrank = 0
+		if not tonumber(opttarg) then
+			targ = game.Players[opttarg]
+			targrank = PlrRanks[opttarg].Value
+		else
+			targ = opttarg
+			targrank = 0
+		end
 		
 		
 		if Commands:FindFirstChild(action) then
@@ -136,6 +144,10 @@ end)
 -- Chat Commands (it i s not recommended to modify this section unless you know exactly what you're doing)
 game.Players.PlayerAdded:Connect(function(plr)
 	plr.Chatted:Connect(function(cmd)
+		if string.lower(cmd) == string.lower(ChatCommandPrefix.."rejoin") then
+			TPS:Teleport(game.PlaceId, plr)
+			return
+		end
 		if cmd and ChatCommandsEnabled == true then
 			if string.find(tostring(cmd),tostring(ChatCommandPrefix),1,false) then
 				cmd = string.gsub(tostring(cmd),tostring(ChatCommandPrefix),"")
@@ -556,17 +568,6 @@ Players.PlayerAdded:Connect(function(player)
 	
 end)
 
---rejoin cmd
-Players.PlayerAdded:Connect(function(plr)
-	plr.Chatted:Connect(function(msg)
-		if rjcmdenabled then
-			if string.lower(msg) == tostring(ChatCommandPrefix.."rejoin") then
-				TPS:Teleport(game.PlaceId, plr)
-			end
-		end
-		
-	end)
-end)
 
 
 Players.PlayerRemoving:Connect(function(player)
