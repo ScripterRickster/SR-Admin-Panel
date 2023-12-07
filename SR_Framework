@@ -32,7 +32,8 @@ local StaffStore = DDS:GetDataStore(game.PlaceId,"Staff")
 
 local ActiveGlobalAnnouncements = DDS:GetDataStore(game.PlaceId,"Global_Announcements")
 
--- chatversion
+
+-- chatversion & mutedplayer stuff
 local chatversion = TCS.ChatVersion
 
 -- events
@@ -53,13 +54,19 @@ local GetChatTagInfo = RS.GetChatTags
 
 -- config stuff
 local config = require(script.Parent:WaitForChild("SR_Loader"):WaitForChild("Config"))
-local rjcmdenabled =  config.rejoincmdenabled
-local SCTenabled = config.chattagenabled
-local stafftags = config.stafftags
-local defaulthealth = config.defaulthealth
-local permrankchanges = config.permrankchanges
+local rjcmdenabled =  config["Miscellaneous"]["RejoinCMDEnabled"]
+local defaulthealth = config["Miscellaneous"]["DefaultHealth"]
+local permrankchanges = config["Miscellaneous"]["PermRankChanges"]
 local tools = SStorage:WaitForChild("Tools"):GetChildren()
 local vehicles = SStorage.Vehicles
+
+
+-- rank stuff
+local customRanks = config["Custom Ranks"]
+local groupStuff = config["Group"]
+local groupRanks = groupStuff["Ranks"]
+local trelloStuff = config["Trello Stuff"]
+local trelloRanks = trelloStuff["Ranks"]
 
 --Other UI's
 local UIs = script.UIs
@@ -76,9 +83,9 @@ local FlightStuff = script.FlightStuff
 
 local PlrRanks = script.PlayerRanks
 
-local webhookenable = config.webhoookenabled
+local webhookenable = config["Webhook Logging"]["WebhookEnabled"]
 
-local webhookid = config.webhookid
+local webhookid = config["Webhook Logging"]["WebhookID"]
 
 local MiscStuff = script.MiscellaneousStuff
 
@@ -90,12 +97,12 @@ local removetools = {}
 
 -- Some other random variables I was too lazy to classify
 
-local anticheat = config.anticheatenabled
-local anticheatignore = config.anticheatignore
+local anticheat = config["Anti-Cheat"]["AntiCheatEnabled"]
+local anticheatignore = config["Anti-Cheat"]["AntiCheatIgnore"]
 
 -- Chat Command Stuff
-local ChatCommandsEnabled = config.chatcmdsenabled
-local ChatCommandPrefix = config.chatcmdprefix
+local ChatCommandsEnabled = config["Chat Commands"]["ChatCMDSEnabled"]
+local ChatCommandPrefix = config["Chat Commands"]["ChatCMDSPrefix"]
 
 
 
@@ -104,16 +111,9 @@ local ChatCommandPrefix = config.chatcmdprefix
 
 ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optextraval)
 	if player and action then
-		local targ = nil
+		local targ = game.Players[opttarg]
 		local staffrank = PlrRanks[player.Name].Value
-		local targrank = 0
-		if not tonumber(opttarg) then
-			targ = game.Players[opttarg]
-			targrank = PlrRanks[opttarg].Value
-		else
-			targ = opttarg
-			targrank = 0
-		end
+		local targrank = PlrRanks[opttarg].Value
 		
 		
 		if Commands:FindFirstChild(action) then
@@ -310,14 +310,84 @@ end)
 
 -- Get Chat Tags For New TextChatService
 GetChatTagInfo.OnServerInvoke = function(plr,targ)
-	if plr and targ and SCTenabled == true then
+	if plr and targ then
+		local tagData
+		local assigned = false
 		local targplr = game.Players:FindFirstChild(targ)
 		if targplr then
 			local plrrank = PlrRanks:FindFirstChild(targplr.Name).Value
-			if plrrank >= 1 and plrrank <= 4 then
-				local staffmemtag = stafftags[plrrank]
-				return staffmemtag
+			if plrrank > 0 then
+				local CustomRanks = config["Custom Ranks"]
+
+				local Group = config["Group"]
+				local GroupEnabled = Group["GroupEnabled"]
+				local GroupID = Group["GroupId"]
+				local GroupRanks = Group["Ranks"]
+
+				local Trello = config["Trello Stuff"]
+				local TrelloEnabled = Trello["TrelloEnabled"]
+				local TrelloRanks = Trello["Ranks"]
+				local TrelloBoardName = Trello["TrelloBoardName"]
+				local TrelloAPI = require(script["API's"].TrelloAPI)
+				
+				if TrelloEnabled  and assigned == false then
+					local board = TrelloAPI:GetBoardID(TrelloBoardName)
+					for _,v in pairs(TrelloRanks) do
+						if v["RankListName"] ~= "" then
+							local list = TrelloAPI:GetLists(v["RankListName"],board)
+							local cards = TrelloAPI:GetCardsInList(list)
+							local assigned = false
+							for _, i in pairs(cards) do
+								if string.find(i.name,plr.UserId) or string.find(i.name,plr.Name) then
+									if TrelloRanks[i]["TagEnabled"] == true then
+										tagData = TrelloRanks[i]["StaffTag"]
+									end
+									assigned = true
+									break
+								end
+							end
+							if assigned then
+								break
+							end
+						end
+					end
+				end
+
+				if GroupEnabled and assigned == false then
+					for _,v in pairs(GroupRanks) do
+						if v["RankId"] == plr:GetRankInGroup(GroupID) then
+							if v["TagEnabled"] == true then
+								tagData = v["StaffTag"]
+							end
+							assigned = true
+							break
+						end
+					end
+				end
+				
+				
+				if assigned == false then
+					if plr.UserId == game.CreatorId then
+						tagData = CustomRanks["Owner"]["StaffTag"]
+						assigned = true
+					else
+						for _,v in pairs(CustomRanks) do
+							if (table.find(v["Users"],plr.UserId) or table.find(v["Users"],tostring(plr.UserId)) or table.find(v["Users"],plr.Name)) ~= (nil and -1) then
+								if v["TagEnabled"] == true then
+									tagData = v["StaffTag"]
+								end
+								assigned = true
+								break
+							end
+						end
+					end
+					
+				end
+	
 			end
+		end
+		if tagData ~= nil then
+			return tagData
 		end
 	end
 end
@@ -354,7 +424,50 @@ GetPlrRank.OnServerInvoke = function(plr)
 		local s = PlrRanks:FindFirstChild(plr.Name)
 		if s then
 			local r = PlrRanks:FindFirstChild(plr.Name).Value
-			return r
+			local info = {r}
+			local assigned = false
+			
+			if plr.UserId == game.CreatorId and assigned == false and customRanks["Owner"]["TagEnabled"] then
+				table.insert(info,customRanks["Owner"]["RankName"])
+				assigned = true
+			end
+			
+			if groupStuff["GroupEnabled"] and assigned == false then
+				for _,v in pairs(groupRanks) do
+					if v["RankValue"] == r and v["TagEnabled"] then
+						table.insert(info,v["RankName"])
+						assigned = true
+						break
+					end
+				end
+			end
+			
+			if trelloStuff["TrelloEnabled"] and assigned == false then
+				for _,v in pairs(trelloRanks) do
+					if v["RankValue"] == r and v["TagEnabled"] then
+						table.insert(info,v["RankName"])
+						assigned = true
+						break
+					end
+				end
+			end
+			
+			if assigned == false then
+				for _,v in pairs(customRanks) do
+					if v["RankValue"] == r and v["TagEnabled"] then
+						table.insert(info,v["RankName"])
+						assigned = true
+						break
+					end
+				end
+			end
+			if assigned then
+				return info
+			else
+				table.insert(info,"Regular / No Rank")
+				return info
+			end
+			
 		end
 	end
 end
@@ -497,6 +610,19 @@ DVeh.OnServerInvoke = function(player)
 	end
 	return vehs
 end
+
+-- mute system for the new textchatservice
+TCS.DescendantAdded:Connect(function(child)
+	if child:IsA("TextSource") then
+		
+		if child.UserId == TargId then
+			child.CanSend = false
+		end
+	end
+end)
+
+-- mute any current TextSources
+
 
 --anti exploit module giver
 
