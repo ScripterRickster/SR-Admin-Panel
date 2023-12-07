@@ -1,121 +1,222 @@
 local config = {
-	groupEnabled = false; --If this is set to false, then you dont need to fill out any of the stuff below related to group stuff
-	groupid = 0 ;
-	modrank = 0;
-	adminrank = 0;
-	hadminrank = 0;
-	ownerrank = 0;
+
+	["Group"] = {
+		GroupEnabled = false; 
+		GroupId = 0;
+		["Ranks"] = {
+			["Mod"] = {
+				RankName = "Moderator";
+				RankId = 0;
+				RankValue = 1;
+				TagEnabled = true;
+				StaffTag = {
+					TagText = "Mod";
+					TagColor = Color3.new(0.819608, 0.509804, 0.352941);
+				};
+			};
+			
+			["Admin"] = {
+				RankName = "Administrator";
+				RankId = 0;
+				RankValue = 2;
+				TagEnabled = true;
+				StaffTag = {
+					TagText = "Admin";
+					TagColor = Color3.new(0.0392157, 1, 0.152941);
+				};
+			};
+			
+			["Head Admin"] = {
+				RankName = "Head Administrator";
+				RankId = 0;
+				RankValue = 3;
+				TagEnabled = true;
+				StaffTag = {
+					TagText = "Head Admin";
+					TagColor = Color3.new(1, 0, 0);
+				};
+			};
+			
+			["Owner"] = {
+				RankName = "Owner";
+				RankId = 0;
+				RankValue = 4;
+				TagEnabled = true;
+				StaffTag = {
+					TagText = "Owner";
+					TagColor = Color3.new(1, 0.960784, 0.537255);
+				};
+			};
+
+		}
+	};
+
 	
-	--webhook stuff
-	webhoookenabled = false;
-	webhookid = ""; -- Make sure to input a valid discord webhook, otherwise the admin panel will not be able to successfully send the webhooks, and may cause the admin panel to break.  Ex: "https://discord.com/api/webhooks/1033725234232184852/Hscgw7r9A4iDWGfr6aGorHo2B2759UOD2YM0c89W_kTzjTW-8BWiO7Sa-uwngyAHDIuL" [if u try using the webhook, then ur dumb (no offence meant)]
-	-- THIS IS IF THE ADMIN SYSTEM ISNT FOR A GROUP. PUT PLAYER'S ID (RECOMMENDED) OR PLAYER'S USERNAME (NOT RECOMMENDED). FOR PLAYER'S USERNAME, MAKE SURE USERNAME IS IN QUOTES, AND A COMMA IS AFTER THE USERNAME, FOR PLAYER ID, JUST SIMPLY PUT THE USER'S ID AND A COMMA AFTER IT.
-	mods = {
-		--"exampleusername",
-		--6969696969,
-	};	
-	
-	admins = {
-		--"exampleusername",
-		--6969696969,
+	["Webhook Logging"] = {
+		WebhookEnabled = false;
+		WebhookID = ""; -- Make sure to input a valid discord webhook, otherwise the admin panel will not be able to successfully send the webhooks, and may cause the admin panel to break.  Ex: "https://discord.com/api/webhooks/1033725234232184852/Hscgw7r9A4iDWGfr6aGorHo2B2759UOD2YM0c89W_kTzjTW-8BWiO7Sa-uwngyAHDIuL" [if u try using the webhook, then ur dumb (no offence meant)]
 	};
 	
-	headadmin = {
-		--"exampleusername",
-		--6969696969,
-	};		
 	
-	owner = {
-		--"exampleusername",
-		--6969696969,
-		
+	["Custom Ranks"] = {
+		["Mod"] = {
+			RankName = "Moderator";
+			RankValue = 1;
+			TagEnabled = true;
+			StaffTag = {
+				TagText = "Mod";
+				TagColor = Color3.new(0.819608, 0.509804, 0.352941);
+			};
+			Users = {
+				-- Put their userid or username here.
+				-- Ex: "Bob1234"; or (userid);
+			};
+		};
+
+		["Admin"] = {
+			RankName = "Administrator";
+			RankValue = 2;
+			TagEnabled = true;
+			StaffTag = {
+				TagText = "Admin";
+				TagColor = Color3.new(0.0392157, 1, 0.152941);
+			};
+			Users = {
+				-- Put their userid or username here.
+				-- Ex: "Bob1234"; or (userid);
+			};
+		};
+
+		["Head Admin"] = {
+			RankName = "Head Administrator";
+			RankValue = 3;
+			TagEnabled = true;
+			StaffTag = {
+				TagText = "Head Admin";
+				TagColor = Color3.new(1, 0, 0);
+			};
+			Users = {
+				-- Put their userid or username here.
+				-- Ex: "Bob1234"; or (userid);
+			};
+		};
+
+		["Owner"] = {
+			RankName = "Owner";
+			RankValue = 4;
+			TagEnabled = true;
+			StaffTag = {
+				TagText = "Owner";
+				TagColor = Color3.new(1, 0.960784, 0.537255);
+			};
+			Users = {
+				game.CreatorId;
+				-- Put their userid or username here.
+				-- Ex: "Bob1234"; or (userid);
+			};
+		};
 	};
 	
 	--Staff Chat Tags
-	chattagenabled = true;
-	stafftags = {
-		[1] = {TagText = "Mod", TagColor = Color3.new(0.819608, 0.509804, 0.352941)},
-		[2] = {TagText = "Admin", TagColor = Color3.new(0.0392157, 1, 0.152941)},
-		[3] = {TagText = "Head Admin", TagColor = Color3.new(1, 0, 0)},
-		[4] = {TagText = "Owner", TagColor = Color3.new(1, 0.960784, 0.537255)}
+	
+	["Banned Users"] = {
+		-- enter the user id or username here. 
+		-- ex: "Bob1234";  or (userid),
 	};
 	
 	
-	banlist = {
-		--"exampleusername",
-		--6969696969,
+	
+	
+	["Chat Commands"] = {
+		ChatCMDSEnabled = true; -- Whether chat commands are permitted or not 
+		ChatCMDSPrefix = "?"; -- Prefix for the chat commands if enabled
+	};
+
+	["Trello Stuff"] = {
+		TrelloEnabled = false;
+		TrelloAPIKey = "";
+		TrelloToken = "";
+		TrelloBoardName = "";
+		TrelloBanListName = "";
+		["Ranks"] = {
+			["Mod"] = {
+				RankName = "Moderator";
+				RankValue = 1;
+				RankListName = ""; 
+				TagEnabled = true;
+				StaffTag = {
+					TagText = "Mod";
+					TagColor = Color3.new(0.819608, 0.509804, 0.352941);
+				}
+			};
+
+			["Admin"] = {
+				RankName = "Administrator";
+				RankValue = 2;
+				RankListName = ""; 
+				TagEnabled = true;
+				StaffTag = {
+					TagText = "Admin";
+					TagColor = Color3.new(0.0392157, 1, 0.152941);
+				}
+			};
+
+			["Head Admin"] = {
+				RankName = "Head Administrator";
+				RankValue = 3;
+				RankListName = ""; 
+				TagEnabled = true;
+				StaffTag = {
+					TagText = "Head Admin";
+					TagColor = Color3.new(1, 0, 0);
+				}
+			};
+
+			["Owner"] = {
+				RankName = "Owner";
+				RankValue = 4;
+				RankListName = ""; 
+				TagEnabled = true;
+				StaffTag = {
+					TagText = "Owner";
+					TagColor = Color3.new(1, 0.960784, 0.537255);
+				}
+			};
+		}
 		
 	};
 	
-	-- Whether the rank changed in-game is permanent or temporary
-	permrankchanges = false; -- whether this is enabled or not
-	
-	-- Chat Commands
-	chatcmdsenabled = true; -- Whether chat commands are permitted or not 
-	chatcmdprefix = "?"; -- Prefix for the chat commands if enabled
-	
-	--Trello Stuff
-	
-	TrelloEnabled = false;
-	TrelloAPIKey = "";
-	TrelloToken = "";
-	TrelloBoardName = "";
-	TrelloBanListName = "";
-	TrelloModsListName = "";
-	TrelloAdminListName = "";
-	TrelloHeadAdminListName = "";
-	TrelloOwnersListName = "";
-	
-	
-	
-	
-	-- rejoin cmd
-	rejoincmdenabled = true; -- whether rejoin cmd is enabled / disabled
-	
-	
-	--default health
-	defaulthealth = 100;
-	
-	
-	
-	
-	--[[
-	
-	THIS IS FOR COMMAND PERMS. 
-	
-	1 = MOD
-	
-	2 = ADMIN
-	
-	3 = HEAD ADMIN
-	
-	4 = OWNER
-	
-	
-	]]
-	
-	--cmd cooldown
-	commandcooldown = 1; --The number should be in seconds. Ex: For 5 seconds, you would put 5. This is to prevent abuse from occuring. 
-	
-	--server message cooldown
-	servmsgcooldown = 10; --The number should be in seconds. Ex: For 10 seconds, you would put 10. This is for how long the server message lasts
-	
-	-- warn ui wait time
-	warnwaittime = 5; -- The number of seconds before the user can click the "accept" button in order to get rid of the UI. 
-	
-	-- anti cheat
-	anticheatenabled = false; -- Determines whether the in-built anti-cheat is enabled or not.
-	
-	anticheatignore = {
-		-- Put the names of stuff that you dont want the anti-exploit to check for, whether this is UI's or tools. 
-		-- For example:
-		-- "MyUIName";
-		-- "MyPartName";
-		
+	["Cooldowns"] = {
+		CommandCooldown = 1; --The number should be in seconds. Ex: For 5 seconds, you would put 5. This is to prevent abuse from occuring. 
+		ServerMsgCooldown = 10; --The number should be in seconds. Ex: For 10 seconds, you would put 10. This is for how long the server message lasts
+		ReportCooldown = 5; -- The interval (in seconds) of each report that can possibly be made.
+		WarnWaitTime = 5;
 	};
 	
-	-- report function cooldown
-	reportcooldown = 5; -- The interval (in seconds) of each report that can possibly be made.
+	["Anti-Cheat"] = {
+		AntiCheatEnabled = true; -- Determines whether the in-built anti-cheat is enabled or not.
+		AntiCheatIgnore = {
+			-- Put the names of stuff that you dont want the anti-exploit to check for, whether this is UI's or tools. 
+			-- For example:
+			-- "MyUIName";
+			-- "MyPartName";
+		};
+	};
+	
+	["Miscellaneous"] = {
+		-- Rejoin CMD
+		RejoinCMDEnabled = true;
+
+		--Default health
+		DefaultHealth = 100;
+		
+		-- Whether the rank changed in-game is permanent or temporary
+		PermRankChanges = false; 
+	};
+	
+	AdminVersion = 3.0; -- DO NOT TOUCH
+
+	
 	
 	
 }
