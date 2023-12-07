@@ -4,6 +4,16 @@ local config = {
 		GroupEnabled = false; 
 		GroupId = 0;
 		["Ranks"] = {
+			
+			-- Format:
+			-- RankName -> Name of the rank
+			-- RankId -> ID of the group role that you wish to assign to the rank
+			-- RankValue -> Value of the rank (so the bigger, the more "valuable" or important the rank is)
+			-- TagEnabled -> Whether the staff chat tag is enabled or not
+			-- StaffTag -> Chat tag stuff
+			-- TagText -> Text that appears next to the user's username within the chat 
+			-- TagColor -> Color of the chat tag
+			
 			["Mod"] = {
 				RankName = "Moderator";
 				RankId = 0;
@@ -53,12 +63,21 @@ local config = {
 
 	
 	["Webhook Logging"] = {
-		WebhookEnabled = false;
-		WebhookID = ""; -- Make sure to input a valid discord webhook, otherwise the admin panel will not be able to successfully send the webhooks, and may cause the admin panel to break.  Ex: "https://discord.com/api/webhooks/1033725234232184852/Hscgw7r9A4iDWGfr6aGorHo2B2759UOD2YM0c89W_kTzjTW-8BWiO7Sa-uwngyAHDIuL" [if u try using the webhook, then ur dumb (no offence meant)]
+		WebhookEnabled = False;
+		WebhookID = ""; -- Make sure to input a valid discord webhook, otherwise the admin panel will not be able to successfully send the webhooks, and may cause the admin panel to break.  Ex: "https://discord.com/api/webhooks/1033725234232184852/Hscgw7r9A4iDWGfr6aGorHo2B2759UOD2YM0c89W_kTzjTW-8BWiO7Sa-uwngyAHDIuL" (Don't try using the example webhook id, as it won't work)
 	};
 	
 	
 	["Custom Ranks"] = {
+		
+		-- Format:
+		-- RankName -> Name of the rank
+		-- RankValue -> Value of the rank (so the bigger, the more "valuable" or important the rank is)
+		-- TagEnabled -> Whether the staff chat tag is enabled or not
+		-- StaffTag -> Chat tag stuff
+		-- TagText -> Text that appears next to the user's username within the chat 
+		-- TagColor -> Color of the chat tag
+		
 		["Mod"] = {
 			RankName = "Moderator";
 			RankValue = 1;
@@ -133,12 +152,22 @@ local config = {
 	};
 
 	["Trello Stuff"] = {
-		TrelloEnabled = false;
-		TrelloAPIKey = "";
-		TrelloToken = "";
-		TrelloBoardName = "";
-		TrelloBanListName = "";
+		TrelloEnabled = false; -- Whether trello stuff is enabled or not
+		TrelloAPIKey = ""; -- API Key for your trello account
+		TrelloToken = ""; -- Token Key for your trello account
+		TrelloBoardName = ""; -- Board name of which all these lists can be found under
+		TrelloBanListName = ""; -- Name of the list that contains banned users
 		["Ranks"] = {
+			
+			-- Format:
+			-- RankName -> Name of the rank
+			-- RankValue -> Value of the rank (so the bigger, the more "valuable" or important the rank is)
+			-- RankListName -> Name of the list that contains the users for that specific rank
+			-- TagEnabled -> Whether the staff chat tag is enabled or not
+			-- StaffTag -> Chat tag stuff
+			-- TagText -> Text that appears next to the user's username within the chat 
+			-- TagColor -> Color of the chat tag
+			
 			["Mod"] = {
 				RankName = "Moderator";
 				RankValue = 1;
@@ -160,10 +189,11 @@ local config = {
 					TagColor = Color3.new(0.0392157, 1, 0.152941);
 				}
 			};
-
+			
+			-- Head Admin rank
 			["Head Admin"] = {
-				RankName = "Head Administrator";
-				RankValue = 3;
+				RankName = "Head Administrator"; -- Name of the rank
+				RankValue = 3; -- Value of the rank (so the bigger, the more "valuable" orimportant the rank is)
 				RankListName = ""; 
 				TagEnabled = true;
 				StaffTag = {
@@ -171,13 +201,14 @@ local config = {
 					TagColor = Color3.new(1, 0, 0);
 				}
 			};
-
+			
+			-- Owner rank
 			["Owner"] = {
-				RankName = "Owner";
-				RankValue = 4;
-				RankListName = ""; 
-				TagEnabled = true;
-				StaffTag = {
+				RankName = "Owner"; 
+				RankValue = 4; 
+				RankListName = "";  
+				TagEnabled = true; 
+				StaffTag = { 
 					TagText = "Owner";
 					TagColor = Color3.new(1, 0.960784, 0.537255);
 				}
@@ -190,7 +221,7 @@ local config = {
 		CommandCooldown = 1; --The number should be in seconds. Ex: For 5 seconds, you would put 5. This is to prevent abuse from occuring. 
 		ServerMsgCooldown = 10; --The number should be in seconds. Ex: For 10 seconds, you would put 10. This is for how long the server message lasts
 		ReportCooldown = 5; -- The interval (in seconds) of each report that can possibly be made.
-		WarnWaitTime = 5;
+		WarnWaitTime = 5; -- The amount of time a user has to wait before they can acknowledge the warning, and close the popup.
 	};
 	
 	["Anti-Cheat"] = {
