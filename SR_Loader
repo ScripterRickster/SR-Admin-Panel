@@ -6,49 +6,39 @@ local TS = game:GetService("TextChatService")
 local SRAdminEvents = RS.SRAdminEvents
 
 local config = require(script.Config)
-local groupenab = config.groupEnabled
+
 
 -- group stuff
-local groupid = config.groupid
-local modrank = config.modrank
-local adminrank = config.adminrank
-local hadminrank = config.hadminrank
-local ownerrank = config.ownerrank
+local group = config["Group"]
+local groupEnabled = group["GroupEnabled"]
+local groupID = group["GroupId"]
+local groupRanks = group["Ranks"]
 
 -- ranks
-local mod = config.mods
-local admin = config.admins
-local headadmin = config.headadmin
-local owner = config.owner
+local customRanks = config["Custom Ranks"]
 
 --cooldowns
-local cmdcooldown = config.commandcooldown
-local servmsgcooldown = config.servmsgcooldown
-local reportcooldown = config.reportcooldown
+local cmdcooldown = config["Cooldowns"]["CommandCooldown"]
+local servmsgcooldown = config["Cooldowns"]["ServerMsgCooldown"]
+local reportcooldown = config["Cooldowns"]["ReportCooldown"]
 
 -- stafflock
 
 local stafflock = script.StaffLock
 
 --perm rank changes
-local permrankchanges = config.permrankchanges
+local permrankchanges = config["Miscellaneous"]["PermRankChanges"]
 
 --banlist
-local banlist = config.banlist
+local banlist = config["Banned Users"]
 
 --Datastore stuff
 local DDS = game:GetService("DataStoreService")
 local bandatastore = DDS:GetDataStore(game.PlaceId,"Banned_Users")
 local staffdatastore = DDS:GetDataStore(game.PlaceId,"Staff")
 
--- webhook stuff
-local webhookenabled = config.webhoookenabled
-local webhookid = config.webhookid
-
 -- chat version
 local chatversion 
-
-
 --checks if chat version is set to legacychatservice
 if TS.ChatVersion == Enum.ChatVersion.TextChatService then
 	chatversion = "new"
@@ -77,42 +67,30 @@ UIBlur.Parent = game.Lighting
 
 
 --Trello Stuff
-
-local TrelloEnabled = config.TrelloEnabled
-
-
-
-local TrelloToken = config.TrelloToken
-
-local TrelloBoardName = config.TrelloBoardName
-
-local TrelloBanListName = config.TrelloBanListName
-
-local TrelloAPIKey = config.TrelloAPIKey
+local Trello = config["Trello Stuff"]
+local TrelloEnabled = Trello["TrelloEnabled"]
+local TrelloToken = Trello["TrelloToken"]
+local TrelloBoardName = Trello["TrelloBoardName"]
+local TrelloBanListName = Trello["BanListName"]
+local TrelloAPIKey = Trello["TrelloAPIKey"]
+local TrelloRanks = Trello["Ranks"]
 
 local APIs = framework["API's"]
 local TrelloApi = require(APIs.TrelloAPI)
 
-local modlist = config.TrelloModsListName
-local adminlist = config.TrelloAdminListName
-local headadminlist = config.TrelloHeadAdminListName
-local ownerlist = config.TrelloOwnersListName
 
 
 -- player service
 
 local players = game:GetService("Players")
 
-
-warn("Successfully loaded values & framework. Enjoy! - questionable_existence / Scripter_Rickster")
-
 players.PlayerAdded:Connect(function(player)
-	
+
 	local framework2 = script.Parent:WaitForChild("SR_FrameWork")
 	local API = framework2["API's"]
-	
-	
-	
+
+
+
 	if stafflock.Value == true then
 		player:Kick("Server is currently locked. Please wait until it is unlocked.")
 	end
@@ -121,18 +99,18 @@ players.PlayerAdded:Connect(function(player)
 		player:Kick("You have been permanently kicked from this server. Please try joining another server.")
 		return
 	end
-	
-	
+
+
 	if table.find(banlist,player.UserId) or table.find(banlist,player.Name) then
 		player:Kick("You have been banned from the experience")
 		return
-		
+
 	elseif bandatastore:GetAsync(player.UserId) then
 		player:Kick("You have been banned from this experience")
 		return
 	elseif TrelloEnabled == true then
 		local BanBoardID = TrelloApi:GetBoardID(TrelloBoardName)
-		
+
 		local BanListID = TrelloApi:GetListID(TrelloBanListName,BanBoardID)
 		local BanCards = TrelloApi:GetCardsInList(BanListID)
 		for _, i in pairs(BanCards) do
@@ -141,159 +119,113 @@ players.PlayerAdded:Connect(function(player)
 			end
 		end
 	end
-	
-	
-	
+
+
 	local plrchar = player.Character or player.CharacterAdded:Wait()
 	local plrrank = plrchar:WaitForChild("Rank")
-	
+
 	local servplrrank = Instance.new("IntValue")
 	servplrrank.Parent = script.Parent:WaitForChild("SR_FrameWork").PlayerRanks
 	servplrrank.Name = player.Name
-	
+
 	local apt = script["Admin Panel"]
 	framework.UIs.Panel.UIManager.RprtInterval.Value = reportcooldown
 	framework.UIs.Panel.UIManager.CMDCooldown.Value = cmdcooldown
-	local checked = false
 	
-	if groupenab and checked == false then
-		
-		if player:GetRankInGroup(groupid) == modrank then
-			
-			
-			plrrank.Value = 1
-			servplrrank.Value = 1
-			
-			
-			
-			   
-			--gui:Clone().Parent = player.PlayerGui
-		elseif player:GetRankInGroup(groupid) == adminrank then
-			plrrank.Value = 2
-			servplrrank.Value = 2
-		
-			 
-			--gui:Clone().Parent = player.PlayerGui
-			
-		elseif player:GetRankInGroup(groupid) == hadminrank then
-			
-			
-			plrrank.Value = 3
-			servplrrank.Value = 3
-			
-			   
-			--gui:Clone().Parent = player.PlayerGui
-			
-		elseif player:GetRankInGroup(groupid) == ownerrank then
-			
-			  
-			plrrank.Value = 4
-			servplrrank.Value = 4
-			 
-			    
-			--gui:Clone().Parent = player.PlayerGui
+	local checked = false
+
+	if player.UserId == game.CreatorId and checked == false then
+
+		plrrank.Value = customRanks["Owner"]["RankValue"]
+		servplrrank.Value = customRanks["Owner"]["RankValue"]
+
+		checked = true
+	end
+	
+	if groupEnabled and checked == false then
+		local assigned = false
+		for _,v in pairs(groupRanks) do
+			if v["RankId"] == player:GetRankInGroup(groupID) then
+				plrrank.Value = v["RankValue"]
+				servplrrank.Value = v["RankValue"]
+				assigned = true
+				break
+			end
 		end
-		checked = true
-		
-		
-		
-		
-		
-		
-	elseif player.UserId == game.CreatorId and checked == false then
-		
-		plrrank.Value = 4
-		servplrrank.Value = 4
-		
-		--gui:Clone().Parent = player.PlayerGui
-		checked = true
-		
-	elseif TrelloEnabled and checked == false then
+		if assigned then
+			checked = true
+		else
+			checked = false
+		end
+	end	
+	if TrelloEnabled and checked == false then
 		local temprank = 0;
 		local board = TrelloApi:GetBoardID(TrelloBoardName)
-		local modslist = TrelloApi:GetLists(modlist,board)
-		local modcards = TrelloApi:GetCardsInList(modslist)
-		local adminslist = TrelloApi:GetLists(adminlist,board)
-		local admincards = TrelloApi:GetCardsInList(adminslist)
-		local headadminslist = TrelloApi:GetLists(headadminlist,board)
-		local headadmincards = TrelloApi:GetCardsInList(headadminslist)
-		local ownerslist = TrelloApi:GetLists(ownerlist,board)
-		local ownercards = TrelloApi:GetCardsInList(ownerslist)
 		
-		for _, i in pairs(modcards) do
-			if string.find(i.name,player.UserId) or string.find(i.name,player.Name) then
-				temprank = 1
-			end
-		end
-		for _, i in pairs(admincards) do
-			if string.find(i.name,player.UserId) or string.find(i.name,player.Name) then
-				temprank = 2
-			end
-		end
-		for _, i in pairs(headadmincards) do
-			if string.find(i.name,player.UserId) or string.find(i.name,player.Name) then
-				temprank = 3
-			end
-		end
-		for _, i in pairs(ownercards) do
-			if string.find(i.name,player.UserId) or string.find(i.name,player.Name) then
-				temprank = 4
+		for _,v in pairs(TrelloRanks) do
+			if v["RankListName"] ~= "" then
+				local list = TrelloApi:GetLists(v["RankListName"],board)
+				local cards = TrelloApi:GetCardsInList(list)
+				local assigned = false
+				for _, i in pairs(cards) do
+					if string.find(i.name,player.UserId) or string.find(i.name,player.Name) then
+						temprank = v["RankValue"]
+						assigned = true
+						break
+					end
+				end
+				if assigned then
+					break
+				end
 			end
 		end
 		
-		plrrank.Value = temprank
-		servplrrank.Value = temprank
-		
-		checked = true
-		
-	elseif permrankchanges and checked == false then
+		if temprank >0 then
+			plrrank.Value = temprank
+			servplrrank.Value = temprank
+			checked = true
+		else
+			checked = false
+		end
+	end
+	
+	if permrankchanges and checked == false then
 		local s,rank = pcall(function()
 			return staffdatastore:GetAsync(player.UserId)
 		end)
-		
+
 		if s then
 			plrrank.Value = rank
 			servplrrank.Value = rank
+			checked = true
 		else
-			print("Admin Panel Encountered An Unknown Error.")
+			warn("Admin Panel Encountered An Unknown Error.")
 			player:Kick("Failed to load the rank for the user. Please Rejoin.")
+			checked = false
 		end
-		checked = true
-		
-	elseif checked == false then
-		if table.find(mod,player.UserId) or table.find(mod,player.Name) then
-			
-			plrrank.Value = 1
-			servplrrank.Value = 1
-			
-		elseif table.find(admin,player.UserId) or table.find(admin,player.Name) then
-		
-			plrrank.Value = 2
-			servplrrank.Value = 2
-			
-		elseif table.find(headadmin,player.UserId) or table.find(headadmin,player.Name) then
-		
-			plrrank.Value = 3
-			servplrrank.Value = 3
-			
-		elseif table.find(owner,player.UserId) or table.find(owner,player.Name) then
-			
-		
-			plrrank.Value = 4
-			servplrrank.Value = 4
-			
-		end
-		checked = true
-		
 	end
-	
+
+	if checked == false then
+		
+		for _,v in pairs(customRanks) do
+			if (table.find(v["Users"],player.UserId) or table.find(v["Users"],tostring(player.UserId)) or table.find(v["Users"],player.Name)) ~= nil then
+				plrrank.Value = v["RankValue"]
+				servplrrank.Value = v["RankValue"]
+				break
+			end
+		end
+		checked = true
+
+	end
+
 	local plrchannelfolder = Instance.new("Folder")
 	plrchannelfolder.Name = player.UserId
 	plrchannelfolder.Parent = CA
-	
+
 	if servplrrank.Value > 0 then
 		apt:Clone().Parent = player.Backpack
 	end
+
 	if chatversion == "legacy" then
 		local chattagAPI = require(API.LegacyChatTagAPI)
 		local ChatService = require(SSS:WaitForChild("ChatServiceRunner"):WaitForChild("ChatService"))
@@ -327,7 +259,6 @@ game.Players.PlayerAdded:Connect(function(plr)
 			end
 			plr.CharacterAdded:Wait()
 			script["Admin Panel"]:Clone().Parent = plr.Backpack
-			
 		end)
 	end)
 end)
