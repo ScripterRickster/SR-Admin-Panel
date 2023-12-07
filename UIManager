@@ -15,11 +15,7 @@ local GetRank = SRADMEvents.GetPlayerRank
 
 local Home = script.Parent.Home
 local Commands = script.Parent.Commands
-local Config = script.Parent.Config
-
-local QATargUser
-local QAReason
-local ReportReason
+local Console = script.Parent.Console
 
 local reportcooldown = script.RprtInterval
 local cmdcooldown = script.CMDCooldown
@@ -64,19 +60,31 @@ local ToolsParam = MiscParam:WaitForChild("Tools")
 local MiscUsernameParam = MiscParam:WaitForChild("Username")
 local VehiclesParam = MiscParam:WaitForChild("Vehicles")
 
---------------------------ConfigUI-------------------------
-local Config = script.Parent:WaitForChild("Config")
 --------------------------NavbarUI-------------------------
 local NavBar = script.Parent.Navbar.Navbar.Lists
 local HomeButton = NavBar.Home.Content.Button
 local CommandButton = NavBar.Commands.Content.Button
-local ConfigButton = NavBar.Config.Content.Button
+local ConsoleButton = NavBar.Console.Content.Button
 local CloseButton = NavBar.Close.Content.Button
 local RankText = NavBar.Parent:WaitForChild("Thumbnails"):WaitForChild("TextRegion").Role
 --------------------------ReportUI-------------------------
 local ReportUI = script.Parent.Report.Content.AContent.Report.TextRegion
 local ReportButton = ReportUI.Report.Button
 local ReportTextBox = ReportUI.Reporter
+
+
+
+local ReportPlrOptions = script.Parent:WaitForChild("ReportPlayerOptions")
+local RprtPlrOptionsArea = ReportPlrOptions.Content.AContent.QA.Options
+local OriginalRprtOptionsSize = RprtPlrOptionsArea.CanvasSize.Y.Scale
+local SelectPlr = ReportUI.Parent.Plr.PlrOptions
+local UserId = SelectPlr.Parent.UserIco.UserId
+
+
+local QATargID = ReportUI.Parent:WaitForChild("Plr"):WaitForChild("UserIco"):WaitForChild("UserId")
+local QAReason = ""
+local ReportReason = ""
+
 
 ----------------------VehicleTableSetup--------------------
 local vehicletable = DisplayVehiclesEvent:InvokeServer()
@@ -93,15 +101,29 @@ end
 -----------------------------------------------------------
 local currentplayerrank = GetRank:InvokeServer()
 for i=1,#AvailableCMDS do
-	if currentplayerrank >= AvailableCMDS[i][3] then
-		local temp = CMDTemplate:Clone()
-		temp.Title.Text = AvailableCMDS[i][1]
-		temp.Desc.Text = AvailableCMDS[i][2]
-		temp.Visible = true
-		temp.Name = AvailableCMDS[i][1]
-		temp.Parent = CommandListFrame
+	if currentplayerrank[1] >= AvailableCMDS[i][3] then
+		--[[if game.TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+			if AvailableCMDS[i][1]~= "Mute" and AvailableCMDS[i][1] ~= "Unmute" then
+				local temp = CMDTemplate:Clone()
+				temp.Title.Text = AvailableCMDS[i][1]
+				temp.Desc.Text = AvailableCMDS[i][2]
+				temp.Visible = true
+				temp.Name = AvailableCMDS[i][1]
+				temp.Parent = CommandListFrame
+			end
+		else]]
+			local temp = CMDTemplate:Clone()
+			temp.Title.Text = AvailableCMDS[i][1]
+			temp.Desc.Text = AvailableCMDS[i][2]
+			temp.Visible = true
+			temp.Name = AvailableCMDS[i][1]
+			temp.Parent = CommandListFrame
+		--end
+		
 	end
 end
+
+RankText.Text = currentplayerrank[2]
 
 ManageUIEvent.OnClientEvent:Connect(function(action,extraval)
 	if action and extraval then
@@ -121,25 +143,28 @@ ManageUIEvent.OnClientEvent:Connect(function(action,extraval)
 			
 			local cplrrank = GetRank:InvokeServer()
 			for i=1,#AvailableCMDS do
-				if cplrrank >= AvailableCMDS[i][3] then
-					local tempc = CMDTemplate:Clone()
-					tempc.Title.Text = AvailableCMDS[i][1]
-					tempc.Desc.Text = AvailableCMDS[i][2]
-					tempc.Visible = true
-					tempc.Name = AvailableCMDS[i][1]
-					tempc.Parent = CommandListFrame
+				if cplrrank[1] >= AvailableCMDS[i][3] then
+					if game.TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+						if AvailableCMDS[i][1]~= "Mute" and AvailableCMDS[i][1] ~= "Unmute" then
+							local tempc = CMDTemplate:Clone()
+							tempc.Title.Text = AvailableCMDS[i][1]
+							tempc.Desc.Text = AvailableCMDS[i][2]
+							tempc.Visible = true
+							tempc.Name = AvailableCMDS[i][1]
+							tempc.Parent = CommandListFrame
+						end
+					else
+						local tempc = CMDTemplate:Clone()
+						tempc.Title.Text = AvailableCMDS[i][1]
+						tempc.Desc.Text = AvailableCMDS[i][2]
+						tempc.Visible = true
+						tempc.Name = AvailableCMDS[i][1]
+						tempc.Parent = CommandListFrame
+					end
 				end
 			end
 			
-			if cplrrank == 1 then
-				RankText.Text  = "Moderator"
-			elseif cplrrank == 2 then
-				RankText.Text = "Administrator"
-			elseif cplrrank == 3 then
-				RankText.Text  = "Head Administrator"
-			elseif cplrrank == 4 then
-				RankText.Text  = "Owner"
-			end
+			RankText.Text = cplrrank[2]
 			
 			
 			
@@ -181,17 +206,17 @@ end)
 HomeButton.Activated:Connect(function()
 	Home.Visible = true
 	Commands.Visible = false
-	Config.Visible = false
+	Console.Visible = false
 end)
 
 CommandButton.Activated:Connect(function()
 	Commands.Visible = true
 	Home.Visible = false
-	Config.Visible = false
+	Console.Visible = false
 end)
 
-ConfigButton.Activated:Connect(function()
-	Config.Visible = true
+ConsoleButton.Activated:Connect(function()
+	Console.Visible = true
 	Home.Visible = false
 	Commands.Visible = false
 end)
@@ -204,17 +229,43 @@ ReportTextBox.FocusLost:Connect(function()
 	ReportReason = ReportTextBox.Text
 end)
 
+
+SelectPlr.Activated:Connect(function()
+	ReportPlrOptions.Visible = not ReportPlrOptions.Visible
+	if ReportPlrOptions.Visible == true then
+		RprtPlrOptionsArea.CanvasSize = UDim2.new(0,0,OriginalRprtOptionsSize,0)
+		local allPlrs = game.Players:GetChildren()
+		local plrButtons = RprtPlrOptionsArea:GetChildren()
+		for i=1,#plrButtons do
+			if string.lower(plrButtons[i].Name) ~= "template" and plrButtons[i]:IsA("Frame") then
+				plrButtons[i]:Destroy()
+			end
+		end
+		for i=1,#allPlrs do
+			local template = ReportPlrOptions.Content.AContent.QA.Options.TEMPLATE
+			local v = template:Clone()
+			v.Button.Plr.UserIcon.Image = game.Players:GetUserThumbnailAsync(allPlrs[i].UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+			v.Name = allPlrs[i].UserId
+			v.Button:WaitForChild("Username").Text = allPlrs[i].Name
+			v.Button.Id.Value = allPlrs[i].UserId
+			v.Parent = template.Parent
+			v.Visible = true
+			local canvasY = template.Parent.CanvasSize.Y.Scale
+			template.Parent.CanvasSize = UDim2.new(0,0,canvasY + 1,0)
+		end
+	end
+end)
+
 ReportButton.Activated:Connect(function()
-	if QATargUser ~= nil and QATargUser ~= "" and RprtOnCooldown == false then
+	if QATargID.Value > 0 and RprtOnCooldown == false then
 		RprtOnCooldown = true
-		local plr = game.Players:FindFirstChild(QATargUser)
+		local plr = game.Players:GetPlayerByUserId(QATargID.Value)
 		if plr and ReportReason ~= nil and ReportReason ~= "" then
 			ReportEvent:FireServer(plr,ReportReason)
 		end
 		wait(reportcooldown.Value)
 		RprtOnCooldown = false
 	end
-	
 end)
 
 ReportEvent.OnClientEvent:Connect(function(reporttext)
