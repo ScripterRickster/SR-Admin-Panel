@@ -1,6 +1,20 @@
 local ServerScriptService = game:GetService("ServerScriptService")
 local config = require(ServerScriptService:WaitForChild("SR_Loader"):WaitForChild("Config"))
-local stafftags = config.stafftags
+
+local CustomRanks = config["Custom Ranks"]
+
+local Group = config["Group"]
+local GroupEnabled = Group["GroupEnabled"]
+local GroupID = Group["GroupId"]
+local GroupRanks = Group["Ranks"]
+
+local Trello = config["Trello Stuff"]
+local TrelloEnabled = Trello["TrelloEnabled"]
+local TrelloRanks = Trello["Ranks"]
+local TrelloBoardName = Trello["TrelloBoardName"]
+local TrelloAPI = require(script.Parent.TrelloAPI)
+
+
 
 local chattagapi = {}
 
@@ -11,22 +25,80 @@ function chattagapi.SetTag(speakerName)
 		local speaker = ChatService:GetSpeaker(speakerName)
 		local player = speaker:GetPlayer()
 		local plr = game.Players[speakerName]
-		local char = plr.Character or plr.CharacterAdded:Wait()
-		local rank = char:WaitForChild("Rank")
-
-
-
+		local rank = script.Parent.Parent.PlayerRanks[player.Name]
 
 		if player and plr then
 			if rank.Value>0 then
-				speaker:SetExtraData("Tags",{stafftags[rank.Value]})
-				speaker:SetExtraData("ChatColor",stafftags[rank.Value].TagColor)
+				local tagData
+				local assigned = false
+				if TrelloEnabled  and assigned == false then
+					local board = TrelloAPI:GetBoardID(TrelloBoardName)
+					for _,v in pairs(TrelloRanks) do
+						if v["RankListName"] ~= "" then
+							local list = TrelloAPI:GetLists(v["RankListName"],board)
+							local cards = TrelloAPI:GetCardsInList(list)
+							local assigned = false
+							for _, i in pairs(cards) do
+								if string.find(i.name,plr.UserId) or string.find(i.name,plr.Name) then
+									if TrelloRanks[i]["TagEnabled"] == true then
+										tagData = TrelloRanks[i]["StaffTag"]
+									end
+									assigned = true
+									break
+								end
+							end
+							if assigned then
+								break
+							end
+						end
+					end
+				end
+
+				if GroupEnabled and assigned == false then
+					for _,v in pairs(GroupRanks) do
+						if v["RankId"] == plr:GetRankInGroup(GroupID) then
+							if v["TagEnabled"] == true then
+								tagData = v["StaffTag"]
+							end
+							assigned = true
+							break
+						end
+					end
+				end
+
+
+
+				if assigned == false then
+					if plr.UserId == game.CreatorId then
+						tagData = CustomRanks["Owner"]["StaffTag"]
+						assigned = true
+					else
+						for _,v in pairs(CustomRanks) do
+							if (table.find(v["Users"],plr.UserId) or table.find(v["Users"],tostring(plr.UserId)) or table.find(v["Users"],plr.Name)) ~= (nil and -1) then
+								if v["TagEnabled"] == true then
+									tagData = v["StaffTag"]
+								end
+								assigned = true
+								break
+							end
+						end
+					end
+
+				end
+				
+				if tagData ~= nil then
+					speaker:SetExtraData("Tags",{tagData})
+					
+					speaker:SetExtraData("ChatColor",tagData["TagColor"])
+				end
+				
 			else
 				speaker:SetExtraData("Tags")
 				speaker:SetExtraData("ChatColor")
 			end
 
 		end
+		
 	end
 	
 end
