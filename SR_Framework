@@ -35,6 +35,7 @@ local ActiveGlobalAnnouncements = DDS:GetDataStore(game.PlaceId,"Global_Announce
 
 -- chatversion & mutedplayer stuff
 local chatversion = TCS.ChatVersion
+local MutedPlayers = script.MutedPlayers
 
 -- events
 local VerVent = RS.VerVent
@@ -51,6 +52,7 @@ local GetCommands = RS.GetCommands
 local GetPlrRank = RS.GetPlayerRank
 local ManageUI = RS.ManageUI
 local GetChatTagInfo = RS.GetChatTags
+local GetThemes = RS.GetThemes
 
 -- config stuff
 local config = require(script.Parent:WaitForChild("SR_Loader"):WaitForChild("Config"))
@@ -67,6 +69,9 @@ local groupStuff = config["Group"]
 local groupRanks = groupStuff["Ranks"]
 local trelloStuff = config["Trello Stuff"]
 local trelloRanks = trelloStuff["Ranks"]
+
+-- themes
+local allThemes = config["Miscellaneous"]["Themes"]
 
 --Other UI's
 local UIs = script.UIs
@@ -392,6 +397,14 @@ GetChatTagInfo.OnServerInvoke = function(plr,targ)
 	end
 end
 
+-- Get Themes
+
+GetThemes.OnServerInvoke = function(plr)
+	if plr then
+		return allThemes
+	end
+end
+
 -- Get Commands
 GetCommands.OnServerInvoke = function(plr)
 	if plr then
@@ -507,8 +520,13 @@ VerVent.OnServerEvent:Connect(function(player,val,nckval)
 				end
 
 			elseif nckval == "AddedGui" then
-				if not player.PlayerGui:FindFirstChild(val) and val ~= "TextBox" and val ~= "ProximityPrompts" then
+				if not player.PlayerGui:FindFirstChild(val) and val ~= "TextBox" and val ~= "ProximityPrompts" and val ~= "ServerMessage" and val ~= "WarnGui" and val ~= "PrivMsgUI" then
 					reason = "Attempted to add the following object: "..val.." to "..player.Name.."'s GUI on the client"
+					verkick = true
+				end
+			elseif nckval == "RemovedGui" then
+				if player.PlayerGui:FindFirstChild(val) and val ~= "TextBox" and val ~= "ProximityPrompts" and val ~= "ServerMessage" and val ~= "WarnGui" and val ~= "PrivMsgUI" then
+					reason = "Attempted to remove the following object: "..val.." to "..player.Name.."'s GUI on the client"
 					verkick = true
 				end
 			elseif nckval == "AddedChar" then
@@ -516,9 +534,29 @@ VerVent.OnServerEvent:Connect(function(player,val,nckval)
 					reason = "Attempted to add the following object: "..val.." to "..player.Name.."'s character on the client"
 					verkick = true
 				end
+			elseif nckval == "RemovedChar" then
+				if char:FindFirstChild(val) then
+					reason = "Attempted to remove the following object: "..val.." to "..player.Name.."'s character on the client"
+					verkick = true
+				end
+			elseif nckval == "AddedWKSPCE" then
+				if not game.Workspace:FindFirstChild(val) then
+					reason = "Attempted to add the following object: "..val.." to "..player.Name.."'s game workspace on the client"
+					verkick = true
+				end
+			elseif nckval == "RemovedWKSPCE" then
+				if game.Workspace:FindFirstChild(val) then
+					reason = "Attempted to remove the following object: "..val.." to "..player.Name.."'s game workspace on the client"
+					verkick = true
+				end
 			elseif nckval == "AddedBP" then
 				if not player.Backpack:FindFirstChild(val) then
 					reason = "Attempted to add the following object: "..val.." to "..player.Name.."'s backpack on the client"
+					verkick = true
+				end
+			elseif nckval == "RemovedBP" then
+				if player.Backpack:FindFirstChild(val) then
+					reason = "Attempted to remove the following object: "..val.." to "..player.Name.."'s backpack on the client"
 					verkick = true
 				end
 			elseif nckval == "Rank" then
@@ -614,67 +652,17 @@ end
 -- mute system for the new textchatservice
 TCS.DescendantAdded:Connect(function(child)
 	if child:IsA("TextSource") then
-		
-		if child.UserId == TargId then
-			child.CanSend = false
-		end
-	end
-end)
-
--- mute any current TextSources
-
-
---anti exploit module giver
-
-Players.PlayerAdded:Connect(function(player)
-	if player then
-		local char = player.Character or player.CharacterAdded:Wait()
-		local c = char:GetChildren()
-		local x = 0
-		local r6 = {
-			"Head",
-			"Torso",
-			"HumanoidRootPart",
-			"Left Arm",
-			"Right Arm",
-			"Left Leg",
-			"Right Leg",
-		}
-		
-		local r15 = {
-			"Head",
-			"LowerTorso",
-			"UpperTorso",
-			"HumanoidRootPart",
-			"LeftLowerArm",
-			"LeftUpperArm",
-			"LeftHand",
-			"RightLowerArm",
-			"RightUpperArm",
-			"RightHand",
-			"LeftLowerLeg",
-			"LeftUpperLeg",
-			"LeftFoot",
-			"RightLowerLeg",
-			"RightUpperLeg",
-			"RightFoot",
-		}
-		for i=1,#c do
-			if c[i]:IsA("BasePart") then
-				if table.find(r6,c[i].Name) then
-					x+=1
-				elseif table.find(r15,c[i].Name) then
-					x +=1
-				end
+		for _,v in pairs(MutedPlayers:GetDescendants()) do
+			print(v.Name,v.Value,child.Name,child.UserId)
+			if v.Name == child.Name or v.Value == child.UserId then
+				child.CanSend = false
 			end
 		end
-		if x == 7 then
-			AEMs.CkVal:Clone().Parent = char["Right Arm"]
-		elseif x == 15 then
-			AEMs.CkVal:Clone().Parent = char["RightLowerArm"]
-		end
+		
 	end
 end)
+
+
 
 --tp character to original pos if frozen
 
