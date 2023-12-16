@@ -12,10 +12,11 @@ local DisplayVehiclesEvent = SRADMEvents.DispVehEvent
 local DisplayBackpackEvent = SRADMEvents.DisplayPlrBPEvent
 local UpdateToolsEvent = SRADMEvents.UpdateTools
 local GetRank = SRADMEvents.GetPlayerRank
+local GetThemes = SRADMEvents.GetThemes
 
 local Home = script.Parent.Home
 local Commands = script.Parent.Commands
-local Console = script.Parent.Console
+local Themes = script.Parent.Themes
 
 local reportcooldown = script.RprtInterval
 local cmdcooldown = script.CMDCooldown
@@ -64,7 +65,7 @@ local VehiclesParam = MiscParam:WaitForChild("Vehicles")
 local NavBar = script.Parent.Navbar.Navbar.Lists
 local HomeButton = NavBar.Home.Content.Button
 local CommandButton = NavBar.Commands.Content.Button
-local ConsoleButton = NavBar.Console.Content.Button
+local ThemesButton = NavBar.Themes.Content.Button
 local CloseButton = NavBar.Close.Content.Button
 local RankText = NavBar.Parent:WaitForChild("Thumbnails"):WaitForChild("TextRegion").Role
 --------------------------ReportUI-------------------------
@@ -85,6 +86,8 @@ local QATargID = ReportUI.Parent:WaitForChild("Plr"):WaitForChild("UserIco"):Wai
 local QAReason = ""
 local ReportReason = ""
 
+local SelectedScreen = Home
+
 
 ----------------------VehicleTableSetup--------------------
 local vehicletable = DisplayVehiclesEvent:InvokeServer()
@@ -98,33 +101,63 @@ if vehicletable then
 		vehtemplate.Visible = true
 	end
 end
------------------------------------------------------------
+------------------------RankNameSetup----------------------
 local currentplayerrank = GetRank:InvokeServer()
 for i=1,#AvailableCMDS do
 	if currentplayerrank[1] >= AvailableCMDS[i][3] then
-		--[[if game.TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-			if AvailableCMDS[i][1]~= "Mute" and AvailableCMDS[i][1] ~= "Unmute" then
-				local temp = CMDTemplate:Clone()
-				temp.Title.Text = AvailableCMDS[i][1]
-				temp.Desc.Text = AvailableCMDS[i][2]
-				temp.Visible = true
-				temp.Name = AvailableCMDS[i][1]
-				temp.Parent = CommandListFrame
-			end
-		else]]
-			local temp = CMDTemplate:Clone()
-			temp.Title.Text = AvailableCMDS[i][1]
-			temp.Desc.Text = AvailableCMDS[i][2]
-			temp.Visible = true
-			temp.Name = AvailableCMDS[i][1]
-			temp.Parent = CommandListFrame
-		--end
-		
+		local temp = CMDTemplate:Clone()
+		temp.Title.Text = AvailableCMDS[i][1]
+		temp.Desc.Text = AvailableCMDS[i][2]
+		temp.Visible = true
+		temp.Name = AvailableCMDS[i][1]
+		temp.Parent = CommandListFrame
 	end
 end
 
 RankText.Text = currentplayerrank[2]
-
+-------------------------ThemesSetup-----------------------
+local ActiveTheme = script.Parent:WaitForChild("ActiveTheme")
+local SelectedTheme = script.Parent:WaitForChild("Themes"):WaitForChild("Content"):WaitForChild("AContent"):WaitForChild("QA"):WaitForChild("Bracket"):WaitForChild("SelectedTheme")
+local ThemeTemplate = script.Parent:WaitForChild("Themes"):WaitForChild("Content"):WaitForChild("AContent"):WaitForChild("QA"):WaitForChild("Bracket"):WaitForChild("Themes"):WaitForChild("Template")
+local themes = GetThemes:InvokeServer()
+if themes ~= nil then
+	for _,v in pairs(themes) do
+		local theme = ThemeTemplate:Clone()
+		theme.Parent = ThemeTemplate.Parent
+		theme:WaitForChild("Title").Text = v["Name"]
+		if v["Default"] then
+			SelectedTheme.Value = theme
+			theme:WaitForChild("FP"):WaitForChild("ClickRegion").Active = false
+			theme:WaitForChild("FP"):WaitForChild("Title").Text = "Selected"
+			theme:WaitForChild("FP"):WaitForChild("UIStroke").Color = Color3.new(0.388235, 0.388235, 0.388235)
+			
+			if v["Color"] == nil and v["ImageId"] ~= nil and v["ImageId"] > 0 then
+				ActiveTheme.Theme.BackgroundTransparency = 1
+				ActiveTheme.Theme.ImageTransparency = 0
+				ActiveTheme.Image = "rbxassetid://"..tostring(v["ImageId"])
+			elseif v["Color"] ~= nil and v["ImageId"] == (nil or 0) then
+				ActiveTheme.Theme.ImageTransparency = 0
+				ActiveTheme.Theme.BackgroundColor3 = v["Color"]
+				ActiveTheme.Theme.BackgroundTransparency = 0
+			end
+		end
+		
+		if v["Color"] == nil and v["ImageId"] ~= (nil and 0) then
+			theme:WaitForChild("Theme").BackgroundTransparency = 1
+			theme:WaitForChild("Theme").Image = "rbxassetid://"..tostring(v["ImageId"])
+			theme:WaitForChild("Theme").ImageTransparency = 0
+		elseif v["Color"] ~= nil and v["ImageId"] == (nil or 0) then
+			theme:WaitForChild("Theme").ImageTransparency = 1
+			theme:WaitForChild("Theme").BackgroundColor3 = v["Color"]
+			theme:WaitForChild("Theme").BackgroundTransparency = 0
+		end
+		
+		theme:WaitForChild("FP"):WaitForChild("ClickRegion"):WaitForChild("LocalScript").Enabled = true
+		theme.Name = v["Name"]
+		theme.Visible = true
+	end
+end
+-----------------------------------------------------------
 ManageUIEvent.OnClientEvent:Connect(function(action,extraval)
 	if action and extraval then
 		if action == "Update UI" and tonumber(extraval) <= 4 and tonumber(extraval) >= 1 then
@@ -204,21 +237,30 @@ cmdcooldown.Changed:Connect(function()
 end)
 
 HomeButton.Activated:Connect(function()
-	Home.Visible = true
-	Commands.Visible = false
-	Console.Visible = false
+	if ReportPlrOptions.Visible == false then
+		Home.Visible = true
+		Commands.Visible = false
+		Themes.Visible = false
+		SelectedScreen = Home
+	end
 end)
 
 CommandButton.Activated:Connect(function()
-	Commands.Visible = true
-	Home.Visible = false
-	Console.Visible = false
+	if ReportPlrOptions.Visible == false then
+		Commands.Visible = true
+		Home.Visible = false
+		Themes.Visible = false
+		SelectedScreen = Commands
+	end
 end)
 
-ConsoleButton.Activated:Connect(function()
-	Console.Visible = true
-	Home.Visible = false
-	Commands.Visible = false
+ThemesButton.Activated:Connect(function()
+	if ReportPlrOptions.Visible == false then
+		Themes.Visible = true
+		Home.Visible = false
+		Commands.Visible = false
+		SelectedScreen = Themes
+	end
 end)
 
 CloseButton.Activated:Connect(function()
@@ -229,10 +271,14 @@ ReportTextBox.FocusLost:Connect(function()
 	ReportReason = ReportTextBox.Text
 end)
 
+ReportPlrOptions:GetPropertyChangedSignal("Visible"):Connect(function()
+	SelectedScreen.Visible = true
+end)
 
 SelectPlr.Activated:Connect(function()
 	ReportPlrOptions.Visible = not ReportPlrOptions.Visible
 	if ReportPlrOptions.Visible == true then
+		SelectedScreen.Visible = false
 		RprtPlrOptionsArea.CanvasSize = UDim2.new(0,0,OriginalRprtOptionsSize,0)
 		local allPlrs = game.Players:GetChildren()
 		local plrButtons = RprtPlrOptionsArea:GetChildren()
@@ -253,6 +299,8 @@ SelectPlr.Activated:Connect(function()
 			local canvasY = template.Parent.CanvasSize.Y.Scale
 			template.Parent.CanvasSize = UDim2.new(0,0,canvasY + 1,0)
 		end
+	else
+		SelectedScreen.Visible = true
 	end
 end)
 
