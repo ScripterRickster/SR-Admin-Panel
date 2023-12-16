@@ -63,7 +63,7 @@ local config = {
 
 	
 	["Webhook Logging"] = {
-		WebhookEnabled = False;
+		WebhookEnabled = false;
 		WebhookID = ""; -- Make sure to input a valid discord webhook, otherwise the admin panel will not be able to successfully send the webhooks, and may cause the admin panel to break.  Ex: "https://discord.com/api/webhooks/1033725234232184852/Hscgw7r9A4iDWGfr6aGorHo2B2759UOD2YM0c89W_kTzjTW-8BWiO7Sa-uwngyAHDIuL" (Don't try using the example webhook id, as it won't work)
 	};
 	
@@ -115,21 +115,22 @@ local config = {
 				TagColor = Color3.new(1, 0, 0);
 			};
 			Users = {
+				400034952,
 				-- Put their userid or username here.
 				-- Ex: "Bob1234"; or (userid);
 			};
 		};
 
+		-- THIS "OWNER" RANK MUST BE KEPT OR ELSE YOU'LL BREAK THE ADMIN SYSTEM
 		["Owner"] = {
 			RankName = "Owner";
 			RankValue = 4;
-			TagEnabled = true;
+			TagEnabled = false;
 			StaffTag = {
 				TagText = "Owner";
 				TagColor = Color3.new(1, 0.960784, 0.537255);
 			};
 			Users = {
-				game.CreatorId;
 				-- Put their userid or username here.
 				-- Ex: "Bob1234"; or (userid);
 			};
@@ -190,7 +191,7 @@ local config = {
 				}
 			};
 			
-			-- Head Admin rank
+			
 			["Head Admin"] = {
 				RankName = "Head Administrator"; -- Name of the rank
 				RankValue = 3; -- Value of the rank (so the bigger, the more "valuable" orimportant the rank is)
@@ -202,7 +203,7 @@ local config = {
 				}
 			};
 			
-			-- Owner rank
+			
 			["Owner"] = {
 				RankName = "Owner"; 
 				RankValue = 4; 
@@ -231,6 +232,8 @@ local config = {
 			-- For example:
 			-- "MyUIName";
 			-- "MyPartName";
+			-- "MyModelName";
+			-- etc
 		};
 	};
 	
@@ -243,9 +246,24 @@ local config = {
 		
 		-- Whether the rank changed in-game is permanent or temporary
 		PermRankChanges = false; 
+		
+		["Themes"] = {
+			["Black"] = {
+				Name = "Black"; -- Name of the theme. Ex: "Black Dots"
+				Default = true; -- Whether the theme is default or not
+				ImageId = 0; -- Leave as 0 if it's just a color
+				Color = Color3.new(0,0,0) -- Set to nil if it uses the asset id 
+			};
+			["SR Studio's Theme"] = {
+				Name = "SR Studio Theme"; -- Name of the theme. Ex: "Black Dots"
+				Default = false; -- Whether the theme is default or not
+				ImageId = 15588159028; -- Leave as 0 if it's just a color
+				Color = nil -- Set to nil if it uses the asset id 
+			};
+		};
 	};
 	
-	AdminVersion = 3.0; -- DO NOT TOUCH
+	AdminVersion = "3.0.C1P2"; -- DO NOT TOUCH
 
 	
 	
