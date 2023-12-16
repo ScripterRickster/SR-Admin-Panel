@@ -19,6 +19,9 @@ local RS = game:GetService("ReplicatedStorage"):WaitForChild("SRAdminEvents")
 local vervent = RS:WaitForChild("VerVent")
 local posvent = RS:WaitForChild("PosEvent")
 
+local WKSPACE = game:GetService('Workspace')
+
+
 rank.Changed:Connect(function()
 	vervent:FireServer(rank.Value,"Rank")
 end)
@@ -37,13 +40,34 @@ plrgui.ChildAdded:Connect(function(v)
 	vervent:FireServer(v.Name,"AddedGui")
 end)
 
+--[[plrgui.ChildRemoved:Connect(function(v)
+	vervent:FireServer(v.Name,"RemovedGui")
+end)]]
+
+
 char.ChildAdded:Connect(function(v)
 	vervent:FireServer(v.Name,"AddedChar")
 end)
 
+--[[char.ChildRemoved:Connect(function(v)
+	vervent:FireServer(v.Name,"RemovedChar")
+end)]]
+
 plrbp.ChildAdded:Connect(function(v)
 	vervent:FireServer(v.Name,"AddedBP")
 end)
+
+--[[plrbp.ChildRemoved:Connect(function(v)
+	vervent:FireServer(v.Name,"RemovedBP")
+end)]]
+
+--[[WKSPACE.ChildAdded:Connect(function(v)
+	vervent:FireServer(v.Name,"AddedWKSPCE")
+end)]]
+
+--[[WKSPACE.ChildRemoved:Connect(function(v)
+	vervent:FireServer(v.Name,"RemovedWKSPCE")
+end)]]
 
 hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
 	vervent:FireServer(hum.WalkSpeed,"WalkSpeed")
