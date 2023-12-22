@@ -7,8 +7,10 @@ local toolbar = plugin:CreateToolbar("SR Admin Panel Installation")
 local installbutton = toolbar:CreateButton("SR Admin Installation Panel","Opens up the installation panel that is used to install the SR Admin system.","rbxassetid://14215430082")
 
 local stableadminpanelid = 10477896976
+local stableVersion = "3.0.S"
 
-local canaryadminpanelid = 00000000000
+local canaryadminpanelid = 11898421409
+local canaryVersion = "3.0.C1P3"
 
 local installUI = script:WaitForChild("SRPluginUI")
 
@@ -45,9 +47,173 @@ installbutton.Click:Connect(function()
 	local stableinstall = v:WaitForChild("Main"):WaitForChild("Stable"):WaitForChild("Install")
 	local canaryinstall = v:WaitForChild("Main"):WaitForChild("Canary"):WaitForChild("Install")
 	local close = v:WaitForChild("Main"):WaitForChild("Title"):WaitForChild("Close")
+	
+	if game.ServerScriptService:FindFirstChild("SR_Loader"):FindFirstChild("Config")then
+		local cfg = require(game.ServerScriptService:FindFirstChild("SR_Loader"):FindFirstChild("Config"))
+		if cfg["AdminVersion"] == nil then
+			stableinstall.Text = "UPDATE"
+			stableinstall.Active = false
+			stableinstall.UIStroke.Color = Color3.new(0.243137, 0.243137, 0.243137)
+		else
+			if cfg["AdminVersion"] ~= stableVersion and cfg["AdminVersion"] == canaryVersion then
+				stableinstall.Text = "INSTALL"
+				canaryinstall.Text = "AT CURRENT VERSION"
+				canaryinstall.Active = false
+				canaryinstall.UIStroke.Color = Color3.new(0.243137, 0.243137, 0.243137)
+			elseif cfg["AdminVersion"] == stableVersion and cfg["AdminVersion"] ~= canaryVersion then
+				canaryinstall.Text = "INSTALL"
+				stableinstall.Text = "AT CURRENT VERSION"
+				stableinstall.Active = false
+				stableinstall.UIStroke.Color = Color3.new(0.243137, 0.243137, 0.243137)
+			end
+		end
+		
+	end
 	close.Activated:Connect(function()
 		if closed == false then
 			closed = true
+			local NoMUPAnim = tweenservice:Create(v.Main,TweenInfo.new(1),{Position = NewUIPos})
+			local NoBlurAnim = tweenservice:Create(newUIBlur,TweenInfo.new(1),{Size = 0})
+
+			NoBlurAnim:Play()
+			NoMUPAnim:Play()
+			NoBlurAnim.Completed:Connect(function()
+				newUIBlur:Destroy()
+			end)
+			NoMUPAnim.Completed:Connect(function()
+				v:Destroy()
+			end)
+			if v then
+				v:Destroy()
+			end
+		end
+	end)
+	
+	canaryinstall.Activated:Connect(function()
+		local success,model = pcall(insertservice.LoadAsset,insertservice,canaryadminpanelid)
+
+		if success and model and closed == false then
+
+			local waypointsuccess,errs = pcall(function()
+				changehistoryservice:SetWaypoint("Before Installation")
+			end)
+
+			if waypointsuccess then
+				local closed = true
+				local prevconfig
+				local prevframework
+
+				model.Parent = game.ServerStorage
+
+				local SRAdminStuff = model:WaitForChild("SR Admin Canary")
+
+				local modelitems = SRAdminStuff:GetChildren()
+
+
+				local prevstufffolder = Instance.new("Folder")
+				prevstufffolder.Name = "Previous_Admin_Panel_Items"
+				prevstufffolder.Parent = game.ServerScriptService
+
+				if game.ServerScriptService:FindFirstChild("SR_Loader") then
+					prevconfig = game.ServerScriptService:FindFirstChild("SR_Loader"):FindFirstChild("Config")
+					prevframework = game.ServerScriptService:FindFirstChild("SR_Loader"):FindFirstChild("SR_FrameWork")
+
+					if prevconfig then
+						prevconfig.Parent = prevstufffolder
+						prevconfig.Name = "Previous_Config"
+					end
+					if prevframework then
+						prevframework.Parent = prevstufffolder
+						prevframework.Name = "Previous_(SR_Framework)"
+					end
+					game.ServerScriptService.SR_Loader:Destroy()
+
+				end
+
+				if game.ServerScriptService:FindFirstChild("README") then
+					game.ServerScriptService.README:Destroy()
+
+				end
+
+				if game.ReplicatedStorage:FindFirstChild("SRAdminEvents") then
+					game.ReplicatedStorage.SRAdminEvents:Destroy()
+				end
+
+				if game.ServerStorage:FindFirstChild("Vehicles") then 
+					game.ServerStorage.Vehicles:Destroy()
+
+				end
+
+				if game.ServerStorage:FindFirstChild("Tools") then
+					game.ServerStorage.Tools:Destroy()
+				end
+
+				local sp = game.StarterPlayer
+
+				local spcstuff = sp.StarterCharacterScripts:GetChildren()
+				local sppstuff = sp.StarterPlayerScripts:GetChildren()
+
+				for i=1,#spcstuff do
+					if spcstuff[i].Name == "CkVal" or spcstuff[i].Name == "Flying" or spcstuff[i].Name == "Frozen" or spcstuff[i].Name == "Rank" then
+						spcstuff[i]:Destroy()
+					end
+				end
+
+				for i=1,#sppstuff do
+					if sppstuff[i].Name == "ClientRecieve" then
+						sppstuff[i]:Destroy()
+					end
+				end
+
+
+				for i=1,#modelitems do
+					if modelitems[i].Name == "ReplicatedStorage" then
+						local events = modelitems[i]:GetChildren()
+						for i=1,#events do
+							events[i].Parent = game.ReplicatedStorage
+
+						end
+
+					elseif modelitems[i].Name == "ServerScriptService" then
+						local loaderscript = modelitems[i]:WaitForChild("SR_Loader")
+						loaderscript.Parent = game.ServerScriptService
+						prevstufffolder.Parent = loaderscript
+						print("Previous SR Framework & Config is located at: "..(prevstufffolder.Parent).Name)
+
+					elseif modelitems[i].Name == "README" then
+						local license = modelitems[i]
+						license.Parent = game.ServerScriptService
+
+					elseif modelitems[i].Name == "StarterCharacterScripts" then
+						local sc = game.StarterPlayer.StarterCharacterScripts
+						local scsitems = modelitems[i]:GetChildren()
+
+						for i=1,#scsitems do
+							scsitems[i].Parent = sc
+						end
+
+					elseif modelitems[i].Name == "StarterPlayerScripts" then
+						local sp = game.StarterPlayer.StarterPlayerScripts
+						local spsitems = modelitems[i]:GetChildren()
+
+						for i=1,#spsitems do
+							spsitems[i].Parent = sp
+						end
+
+					elseif modelitems[i].Name == "ServerStorage" then
+						local ss = game.ServerStorage
+						local ssitems = modelitems[i]:GetChildren()
+						for i=1,#ssitems do
+							ssitems[i].Parent = ss
+						end
+					end
+				end
+
+				model:Destroy()
+				warn("Successfully installed the canary version of the SR Admin Panel.")
+			else
+				warn("Something went wrong with the installation process. Please try again")
+			end
 			local NoMUPAnim = tweenservice:Create(v.Main,TweenInfo.new(1),{Position = NewUIPos})
 			local NoBlurAnim = tweenservice:Create(newUIBlur,TweenInfo.new(1),{Size = 0})
 
@@ -80,7 +246,7 @@ installbutton.Click:Connect(function()
 
 				model.Parent = game.ServerStorage
 
-				local SRAdminStuff = model:WaitForChild("SR Admin V1.5")
+				local SRAdminStuff = model:WaitForChild("SR Admin V3")
 
 				local modelitems = SRAdminStuff:GetChildren()
 
