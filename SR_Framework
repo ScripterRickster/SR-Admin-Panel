@@ -372,7 +372,7 @@ GetChatTagInfo.OnServerInvoke = function(plr,targ)
 				
 				
 				if assigned == false then
-					if plr.UserId == game.CreatorId then
+					if plr.UserId == game.CreatorId and CustomRanks["Owner"]["TagEnabled"] then
 						tagData = CustomRanks["Owner"]["StaffTag"]
 						assigned = true
 					else
@@ -440,14 +440,14 @@ GetPlrRank.OnServerInvoke = function(plr)
 			local info = {r}
 			local assigned = false
 			
-			if plr.UserId == game.CreatorId and assigned == false and customRanks["Owner"]["TagEnabled"] then
+			if plr.UserId == game.CreatorId and assigned == false then
 				table.insert(info,customRanks["Owner"]["RankName"])
 				assigned = true
 			end
 			
 			if groupStuff["GroupEnabled"] and assigned == false then
 				for _,v in pairs(groupRanks) do
-					if v["RankValue"] == r and v["TagEnabled"] then
+					if v["RankValue"] == r then
 						table.insert(info,v["RankName"])
 						assigned = true
 						break
@@ -457,7 +457,7 @@ GetPlrRank.OnServerInvoke = function(plr)
 			
 			if trelloStuff["TrelloEnabled"] and assigned == false then
 				for _,v in pairs(trelloRanks) do
-					if v["RankValue"] == r and v["TagEnabled"] then
+					if v["RankValue"] == r  then
 						table.insert(info,v["RankName"])
 						assigned = true
 						break
@@ -467,13 +467,14 @@ GetPlrRank.OnServerInvoke = function(plr)
 			
 			if assigned == false then
 				for _,v in pairs(customRanks) do
-					if v["RankValue"] == r and v["TagEnabled"] then
+					if v["RankValue"] == r then
 						table.insert(info,v["RankName"])
 						assigned = true
 						break
 					end
 				end
 			end
+			
 			if assigned then
 				return info
 			else
@@ -653,7 +654,6 @@ end
 TCS.DescendantAdded:Connect(function(child)
 	if child:IsA("TextSource") then
 		for _,v in pairs(MutedPlayers:GetDescendants()) do
-			print(v.Name,v.Value,child.Name,child.UserId)
 			if v.Name == child.Name or v.Value == child.UserId then
 				child.CanSend = false
 			end
