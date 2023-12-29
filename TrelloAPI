@@ -1,7 +1,10 @@
+// I DID NOT CREATE THIS SCRIPT AS I SIMPLY MODIFIED IT IN ORDER TO BE COMPATIBLE WITH THE ADMIN SYSTEM
 
-//PLEASE NOTE THAT I DID NOT CREATE THIS TRELLOAPI SCRIPT. I ONLY MODIFIED IT SO IT CAN BE USED WITH MY ADMIN PANEL
+local key	=	require(script.Parent.Parent.Parent:WaitForChild("SR_Loader").Config)["Trello Stuff"]["TrelloAPIKey"]; 
 
-local key	=	require(script.Parent.Parent.Parent:WaitForChild("SR_Loader").Config).TrelloAPIKey; 
+
+
+
 
 local suc,err=pcall(function()
 	if game.Players.LocalPlayer~=nil then
