@@ -7,10 +7,10 @@ local toolbar = plugin:CreateToolbar("SR Admin Panel Installation")
 local installbutton = toolbar:CreateButton("SR Admin Installation Panel","Opens up the installation panel that is used to install the SR Admin system.","rbxassetid://14215430082")
 
 local stableadminpanelid = 10477896976
-local stableVersion = "3.0.S0P1"
+local stableVersion = "3.0.S0P2"
 
 local canaryadminpanelid = 11898421409
-local canaryVersion = "3.0.C1P4"
+local canaryVersion = "3.0.C1P5"
 
 local installUI = script:WaitForChild("SRPluginUI")
 
