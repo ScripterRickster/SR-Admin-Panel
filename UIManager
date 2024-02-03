@@ -13,6 +13,8 @@ local DisplayBackpackEvent = SRADMEvents.DisplayPlrBPEvent
 local UpdateToolsEvent = SRADMEvents.UpdateTools
 local GetRank = SRADMEvents.GetPlayerRank
 local GetThemes = SRADMEvents.GetThemes
+local UpdateChatLogs = SRADMEvents.UpdateChatLogs
+local GetPrefix = SRADMEvents.GetPrefix
 
 local Home = script.Parent.Home
 local Commands = script.Parent.Commands
@@ -66,8 +68,14 @@ local NavBar = script.Parent.Navbar.Navbar.Lists
 local HomeButton = NavBar.Home.Content.Button
 local CommandButton = NavBar.Commands.Content.Button
 local ThemesButton = NavBar.Themes.Content.Button
+local ChatLogsButton = NavBar.ChatLogs.Content.Button
 local CloseButton = NavBar.Close.Content.Button
+local Prefix = NavBar.Prefix.Title
+Prefix.Text = GetPrefix:InvokeServer()
 local RankText = NavBar.Parent:WaitForChild("Thumbnails"):WaitForChild("TextRegion").Role
+--------------------------ChatLogs-------------------------
+local ChatLogsFrame = script.Parent.ChatLogs
+local TotalChatLogs = 0
 --------------------------ReportUI-------------------------
 local ReportUI = script.Parent.Report.Content.AContent.Report.TextRegion
 local ReportButton = ReportUI.Report.Button
@@ -85,7 +93,7 @@ local UserId = SelectPlr.Parent.UserIco.UserId
 local QATargID = ReportUI.Parent:WaitForChild("Plr"):WaitForChild("UserIco"):WaitForChild("UserId")
 local QAReason = ""
 local ReportReason = ""
-
+-----------------------------------------------------------
 local SelectedScreen = Home
 
 
@@ -241,6 +249,7 @@ HomeButton.Activated:Connect(function()
 		Home.Visible = true
 		Commands.Visible = false
 		Themes.Visible = false
+		ChatLogsFrame.Visible = false
 		SelectedScreen = Home
 	end
 end)
@@ -250,6 +259,7 @@ CommandButton.Activated:Connect(function()
 		Commands.Visible = true
 		Home.Visible = false
 		Themes.Visible = false
+		ChatLogsFrame.Visible = false
 		SelectedScreen = Commands
 	end
 end)
@@ -259,8 +269,17 @@ ThemesButton.Activated:Connect(function()
 		Themes.Visible = true
 		Home.Visible = false
 		Commands.Visible = false
+		ChatLogsFrame.Visible = false
 		SelectedScreen = Themes
 	end
+end)
+
+ChatLogsButton.Activated:Connect(function()
+	ChatLogsFrame.Visible = true
+	Home.Visible = false
+	Commands.Visible = false
+	Themes.Visible = false
+	SelectedScreen = ChatLogsFrame
 end)
 
 CloseButton.Activated:Connect(function()
@@ -393,3 +412,19 @@ UpdateLogEvent.OnClientEvent:Connect(function(text)
 		
 	end
 end)
+
+UpdateChatLogs.OnClientInvoke = function(newChatLogs)
+	local chatLogs = ChatLogsFrame.Content.AContent.QA.Bracket.ChatLogs
+	for i=1,#newChatLogs do
+		if chatLogs:FindFirstChild(newChatLogs[i][1].Name.."'s Logged Message #"..tostring(newChatLogs[i][5])) == nil then
+			local newChatLog = chatLogs:WaitForChild("Template"):Clone()
+			newChatLog.Info.Text = newChatLogs[i][1].Name.." | "..tostring(newChatLogs[i][2]).." | "..newChatLogs[i][3].." | "..tostring(newChatLogs[i][4])
+			TotalChatLogs += 1
+			newChatLog.LayoutOrder = TotalChatLogs + 1
+			newChatLog.Name = newChatLogs[i][1].Name.."'s Logged Message #"..tostring(newChatLogs[i][5])
+			newChatLog.Parent = chatLogs
+			newChatLog.Visible = true
+		end
+	end
+
+end
