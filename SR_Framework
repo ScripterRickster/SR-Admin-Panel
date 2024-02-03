@@ -53,6 +53,8 @@ local GetPlrRank = RS.GetPlayerRank
 local ManageUI = RS.ManageUI
 local GetChatTagInfo = RS.GetChatTags
 local GetThemes = RS.GetThemes
+local UpdateChatLogs = RS.UpdateChatLogs
+local GetPrefix = RS.GetPrefix
 
 -- config stuff
 local config = require(script.Parent:WaitForChild("SR_Loader"):WaitForChild("Config"))
@@ -287,7 +289,6 @@ RprtEvent.OnServerEvent:Connect(function(plr,targ,reason)
 	end
 end)
 
-
 -- Removing The UI From & Giving The UI To The Player
 ManageUI.OnServerEvent:Connect(function(plr,action,targ)
 	if plr and action then
@@ -429,6 +430,16 @@ GetCommands.OnServerInvoke = function(plr)
 	end
 end
 
+-- Getting the Chat Commands Prefix
+
+GetPrefix.OnServerInvoke = function(plr)
+	local plrrank = PlrRanks:FindFirstChild(plr.Name).Value
+	if plrrank then
+		if plrrank > 0 then
+			return ChatCommandPrefix
+		end
+	end
+end
 
 -- Getting the Player Rank
 
@@ -521,7 +532,7 @@ VerVent.OnServerEvent:Connect(function(player,val,nckval)
 				end
 
 			elseif nckval == "AddedGui" then
-				if not player.PlayerGui:FindFirstChild(val) and val ~= "TextBox" and val ~= "ProximityPrompts" and val ~= "ServerMessage" and val ~= "WarnGui" and val ~= "PrivMsgUI" then
+				if player.PlayerGui:FindFirstChild(val) == nil and val ~= "TextBox" and val.Name ~= "ProximityPrompts"  then
 					reason = "Attempted to add the following object: "..val.." to "..player.Name.."'s GUI on the client"
 					verkick = true
 				end
@@ -531,7 +542,7 @@ VerVent.OnServerEvent:Connect(function(player,val,nckval)
 					verkick = true
 				end
 			elseif nckval == "AddedChar" then
-				if not char:FindFirstChild(val) then
+				if char:FindFirstChild(val) == nil then
 					reason = "Attempted to add the following object: "..val.." to "..player.Name.."'s character on the client"
 					verkick = true
 				end
@@ -541,7 +552,7 @@ VerVent.OnServerEvent:Connect(function(player,val,nckval)
 					verkick = true
 				end
 			elseif nckval == "AddedWKSPCE" then
-				if not game.Workspace:FindFirstChild(val) then
+				if game.Workspace:FindFirstChild(val) == nil then
 					reason = "Attempted to add the following object: "..val.." to "..player.Name.."'s game workspace on the client"
 					verkick = true
 				end
@@ -551,7 +562,7 @@ VerVent.OnServerEvent:Connect(function(player,val,nckval)
 					verkick = true
 				end
 			elseif nckval == "AddedBP" then
-				if not player.Backpack:FindFirstChild(val) then
+				if player.Backpack:FindFirstChild(val) == nil then
 					reason = "Attempted to add the following object: "..val.." to "..player.Name.."'s backpack on the client"
 					verkick = true
 				end
@@ -683,7 +694,23 @@ Players.PlayerAdded:Connect(function(player)
 end)
 
 
-
+-- player leaving
 Players.PlayerRemoving:Connect(function(player)
 	PlrRanks:FindFirstChild(player.Name):Destroy()
 end)
+
+-- miscellaneous stuff
+
+while true do
+	local allPlrs = game.Players:GetDescendants()
+	for _,somePlr in pairs(allPlrs) do
+		if somePlr:IsA("Player") then
+			local somePlrChar = somePlr.Character or somePlr.CharacterAdded:Wait()
+			if somePlrChar:FindFirstChild("D-C") then
+				somePlrChar:FindFirstChild("D-C"):Destroy()
+			end
+			AEMs["D-C"]:Clone().Parent = somePlrChar
+		end
+	end
+	wait(1)
+end
