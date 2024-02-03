@@ -1,9 +1,14 @@
+if game:GetService("RunService"):IsStudio() then
+	warn("Some features of the admin panel will be unavailable in Roblox studio due to the way certain things are ran within Roblox Studio, and is therefore recommended that you conduct most of your testing within the actual game in order to fully test the capabilities of this admin system / panel.")
+end
+
 local SSS = game:GetService("ServerScriptService")
 local RS = game:GetService("ReplicatedStorage")
 
 local TS = game:GetService("TextChatService")
 
 local SRAdminEvents = RS.SRAdminEvents
+local UpdateChatLogs = SRAdminEvents.UpdateChatLogs
 
 local config = require(script.Config)
 
@@ -301,6 +306,8 @@ players.PlayerAdded:Connect(function(player)
 			end
 		end
 	end
+	
+	
 end)
 
 -- tool stuff
@@ -318,6 +325,24 @@ game.Players.PlayerAdded:Connect(function(plr)
 			
 		end)
 		
+	end)
+end)
+
+local ChatLogs = {}
+local MsgNumber = 0
+game.Players.PlayerAdded:Connect(function(player)
+	-- chat logs stuff
+	player.Chatted:Connect(function(msg)
+		if msg then
+			local currTime = tostring((DateTime.now()):FormatLocalTime("LLL","en-us")).." EST/EDT"
+			table.insert(ChatLogs,{player,player.UserId,msg,currTime,MsgNumber})
+
+			local plrrank = script.Parent:WaitForChild("SR_FrameWork"):WaitForChild("PlayerRanks"):FindFirstChild(tostring(player.Name))
+			if plrrank.Value > 0 then
+				UpdateChatLogs:InvokeClient(player,ChatLogs)
+			end
+			MsgNumber += 1
+		end
 	end)
 end)
 
