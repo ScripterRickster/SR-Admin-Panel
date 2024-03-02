@@ -13,8 +13,10 @@ function flagged.Reported(plr,targ,reason)
 	ReportEvent:FireAllClients(reporttext)
 	
 	if wbhkEnabled  then
-		local content = "**"..plr.Name.." ("..plr.UserId..")** has reported: **"..targ.Name.." ("..targ.UserId..")** for: '"..reason.."'"
-		wbhkAPI.SendLog(wbhkID,content)
+		local data = {
+			["content"] = "**"..plr.Name.." ("..plr.UserId..")** has reported: **"..targ.Name.." ("..targ.UserId..")** for: '"..reason.."'"
+		}
+		wbhkAPI.SendLog(wbhkID,data)
 	end
 		
 	
