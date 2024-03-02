@@ -21,10 +21,11 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Commands = script["Commands"]
 
 local  AEMs = script["AntiExploitModules"]
-
 local APIs = script["API's"]
 
 local wbhkAPI = require(APIs.WebhookAPI)
+local helpReqAPI = require(APIs.HelpReqAPI)
+local AEK = require(AEMs["AntiExploitKick"])
 
 
 
@@ -52,6 +53,7 @@ local GetThemes = RS.GetThemes
 local UpdateChatLogs = RS.UpdateChatLogs
 local GetPrefix = RS.GetPrefix
 local GetUserModlogs = RS.GetUserModlogs
+local ProcessHelpReqEvent = RS.ProcessHelpReqEvent
 
 -- config stuff
 local config = require(script.Parent:WaitForChild("SR_Loader"):WaitForChild("Config"))
@@ -97,6 +99,25 @@ local MiscStuff = script.MiscellaneousStuff
 
 local currtools = {}
 local removetools = {}
+
+-- Help System
+local HelpCMD = config["Help System"]["HelpCMD"]
+
+ProcessHelpReqEvent.OnServerEvent:Connect(function(plr,targID)
+	if plr and targID then
+		if PlrRanks:FindFirstChild(plr.Name) then
+			local r = PlrRanks:FindFirstChild(plr.Name)
+			if r.Value > 0 then
+				if game.Players:GetPlayerByUserId(targID) then
+					helpReqAPI.ProcessReq(plr,game.Players:GetPlayerByUserId(targID))
+				end
+			else
+				AEK.TriggeredAE(plr,"Anti Exploit | Attempted to accept a help request without being a staff member for the game.")
+			end
+		end
+	
+	end
+end)
 
 
 -- Some other random variables I was too lazy to classify
@@ -240,6 +261,8 @@ game.Players.PlayerAdded:Connect(function(plr)
 		if string.lower(cmd) == string.lower(ChatCommandPrefix.."rejoin") then
 			TPS:Teleport(game.PlaceId, plr)
 			return
+		elseif string.lower(cmd) == string.lower(HelpCMD) then
+			helpReqAPI.AddReq(plr)
 		end
 		if cmd and ChatCommandsEnabled == true then
 			if string.find(tostring(cmd),tostring(ChatCommandPrefix),1,false) then
@@ -702,7 +725,7 @@ PosEvent.OnServerEvent:Connect(function(player,lastcf,currentcf)
 		local humrootpos = char.HumanoidRootPart.CFrame
 		
 		if frozenval.Value == true and lastcf ~= currentcf then
-			local AEK = require(AEMs["AntiExploitKick"])
+			
 			AEK.TriggeredAE(player,"Moving while frozen")
 		end
 	end
