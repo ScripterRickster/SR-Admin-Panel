@@ -1,4 +1,5 @@
 wait(0.01)
+--DEVELOPER NOTE: PLEASE DO NOT TOUCH CODE THAT IS GREY. DOING SO MAY RESULT IN SEVERAL ERRORS BEING PRODUCED
 
 --services
 
@@ -25,12 +26,7 @@ local APIs = script["API's"]
 
 local wbhkAPI = require(APIs.WebhookAPI)
 
--- datastores
-local BanStore = DDS:GetDataStore(game.PlaceId,"Banned_Users")
 
-local StaffStore = DDS:GetDataStore(game.PlaceId,"Staff")
-
-local ActiveGlobalAnnouncements = DDS:GetDataStore(game.PlaceId,"Global_Announcements")
 
 
 -- chatversion & mutedplayer stuff
@@ -55,6 +51,7 @@ local GetChatTagInfo = RS.GetChatTags
 local GetThemes = RS.GetThemes
 local UpdateChatLogs = RS.UpdateChatLogs
 local GetPrefix = RS.GetPrefix
+local GetUserModlogs = RS.GetUserModlogs
 
 -- config stuff
 local config = require(script.Parent:WaitForChild("SR_Loader"):WaitForChild("Config"))
@@ -111,11 +108,70 @@ local anticheatignore = config["Anti-Cheat"]["AntiCheatIgnore"]
 local ChatCommandsEnabled = config["Chat Commands"]["ChatCMDSEnabled"]
 local ChatCommandPrefix = config["Chat Commands"]["ChatCMDSPrefix"]
 
+-- Datastores
+
+local dsName = config["Datastore"]["Name"] + tostring(game.PlaceId)
+
+local ActiveGlobalAnnouncements = DDS:GetDataStore(dsName,"Global_Announcements")
+
+local Modlogs = DDS:GetDataStore(dsName,"User_Modlogs")
+
+-- Modlogs
+
+CurrModlogs = {
+	
+}
+
+game.Players.PlayerAdded:Connect(function(plr)
+	if plr then
+		local succ,data = pcall(function()
+			return Modlogs:GetAsync(plr.UserId)
+		end)
+		
+		if succ then
+			if data == nil then
+				table.insert(CurrModlogs,{plr.UserId,{}})
+			else
+				table.insert(CurrModlogs,{plr.UserId,data})
+			end
+		end
+	end
+end)
+
+GetUserModlogs.OnServerInvoke = function(plr,requser)
+	local UsrMdlogs = nil
+	local Type = "Name"
+	if game.Players:GetNameFromUserIdAsync(tonumber(requser)) then
+		Type = "UserId"
+	end
+	
+	if Type == "Name" then
+		local userid = game.Players:GetUserIdFromNameAsync(tostring(requser))
+		if userid then
+			for i=1,#CurrModlogs do
+				if CurrModlogs[i][1] == tonumber(userid) then
+					UsrMdlogs = CurrModlogs[i][2]
+					break
+				end
+			end
+		end
+	else
+		local userid = tonumber(requser)
+		for i=1,#CurrModlogs do
+			if CurrModlogs[i][1] == tonumber(userid) then
+				UsrMdlogs = CurrModlogs[i][2]
+				break
+			end
+		end
+	end
+	
+	return UsrMdlogs
+end
 
 
 
---DEVELOPER NOTE: PLEASE DO NOT TOUCH CODE THAT IS GREY. DOING SO MAY RESULT IN SEVERAL ERRORS BEING PRODUCED
 
+-- main command handler stuff
 ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optextraval)
 	if player and action then
 		local targ = game.Players[opttarg]
@@ -143,6 +199,25 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 				cmd.ExecuteCommand(player,staffrank,optreason,optextraval)
 			elseif action == "Private Message" and opttarg and optextraval ~= "" then
 				cmd.ExecuteCommand(targ,player,staffrank,optextraval)
+			end
+			
+			if cmd.LogsToUserModLogs ~= nil then
+				if cmd.LogsToUserModLogs == true and targ~= nil then
+					for i=1,#CurrModlogs do
+						if CurrModlogs[i][1] == targ.UserId then
+							local CurrDate = os.date("*t")
+							
+
+							local month = string.format("%02d", CurrDate.month)  
+							local day = string.format("%02d", CurrDate.day) 
+							
+							local DString =  month + "/" + day + "/" tostring(CurrDate.year)
+							DString = DString + " (MM/DD/YYYY)"
+							
+							table.insert(CurrModlogs[i][2],{DString,optreason})
+						end
+					end
+				end
 			end
 		end
 	end
@@ -532,7 +607,7 @@ VerVent.OnServerEvent:Connect(function(player,val,nckval)
 				end
 
 			elseif nckval == "AddedGui" then
-				if player.PlayerGui:FindFirstChild(val) == nil and val ~= "TextBox" and val.Name ~= "ProximityPrompts"  then
+				if player.PlayerGui:FindFirstChild(val) == nil and val ~= "TextBox" and val ~= "ProximityPrompts" and val ~= "ServerMessage" and val ~= "WarnGui" and val ~= "PrivMsgUI" then
 					reason = "Attempted to add the following object: "..val.." to "..player.Name.."'s GUI on the client"
 					verkick = true
 				end
@@ -697,6 +772,20 @@ end)
 -- player leaving
 Players.PlayerRemoving:Connect(function(player)
 	PlrRanks:FindFirstChild(player.Name):Destroy()
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+	for i=1,#CurrModlogs do
+		if CurrModlogs[i][1] == player.UserId then
+			local succ,err = pcall(function()
+				return Modlogs:SetAsync(player.UserId,CurrModlogs[i][2])
+			end)
+			if err then
+				print("SR Admin System encountered the following error while trying to save the data: "..tostring(err))
+			end
+			break
+		end
+	end
 end)
 
 -- miscellaneous stuff
