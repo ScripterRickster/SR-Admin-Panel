@@ -115,7 +115,6 @@ local config = {
 				TagColor = Color3.new(1, 0, 0);
 			};
 			Users = {
-				400034952,
 				-- Put their userid or username here.
 				-- Ex: "Bob1234"; or (userid);
 			};
@@ -125,7 +124,7 @@ local config = {
 		["Owner"] = {
 			RankName = "Owner";
 			RankValue = 4;
-			TagEnabled = false;
+			TagEnabled = true;
 			StaffTag = {
 				TagText = "Owner";
 				TagColor = Color3.new(1, 0.960784, 0.537255);
@@ -145,6 +144,9 @@ local config = {
 	};
 	
 	
+	["Datastore"] = {
+		Name = "DEFAULTCHANGEPLZ"; -- Sets the name of the datastore combined with the place id. PLEASE do NOT keep it as default text to ensure that people dont mess with your datastore.
+	};
 	
 	
 	["Chat Commands"] = {
@@ -263,7 +265,7 @@ local config = {
 		};
 	};
 	
-	AdminVersion = "3.0.C1P2"; -- DO NOT TOUCH
+	AdminVersion = "3.1.C1P0"; -- DO NOT TOUCH
 
 	
 	
