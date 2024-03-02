@@ -1,0 +1,33 @@
+-- Remember that whatever command name you want this to be is what is required 
+
+local Template = {
+	
+	SendLog = false; -- Whether you want this command to send a log or not. Must set "WebhookEnabled" to true in Config
+	RankRequired = 0; -- Rank that is required to execute this command
+	CanBeUsedInChat = false; -- Essentially you can choose if you can execute the command in the chat
+	ChatCMDAlias = ""; -- Maximum of 2 words. Ex: "sr admin". This is a short form of the command name which will trigger this command when used in chat 
+	Desc = ""; -- Description of the command
+	LogsToUserModLogs = false; -- Whether the command is logged to the user's logs or not. This parameter is NOT required for the command, as the default the system sets it to is false unless you set it to true by adding this option and changing it from false to true
+}
+--Default stuff you'll need
+local APIs = script.Parent.Parent["API's"]
+
+local wbhkAPI = require(APIs.WebhookAPI)
+local config = require(script.Parent.Parent.Parent:WaitForChild("SR_Loader").Config)
+local wbhkid = config["Webhook Logging"]["WebhookID"]
+local wbhkenabled = config["Webhook Logging"]["WebhookEnabled"]
+-- Services go under here
+
+
+-- Other Misc Stuff Go Under Here
+
+
+--Command Execution Function
+function Template.ExecuteCommand(Parameters)
+	
+	
+end
+
+
+
+return Template
