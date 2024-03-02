@@ -253,12 +253,12 @@ MDLogSearch.FocusLost:Connect(function()
 		local UserModlogs = GetModlogs:InvokeServer(MDLogSearch.Text)
 		if UserModlogs ~= nil then
 			for i=1,#UserModlogs do
-				if UserModlogs[i][2][3] ~= nil and UserModlogs[i][2][2] ~= nil and UserModlogs[i][2][1] ~= nil then
+				if UserModlogs[i][1] ~= nil and UserModlogs[i][2] ~= nil and UserModlogs[i][3] ~= nil and UserModlogs[i][4] ~= nil then
 					local newMDLog = MDLogList.Template:Clone()
-					newMDLog.Title.Text = tostring(UserModlogs[i][2][3])
-					newMDLog.StaffMem.Text = tostring(UserModlogs[i][2][4])
-					newMDLog.Reason.Text = tostring(UserModlogs[i][2][2])
-					newMDLog.Date.Text = tostring(UserModlogs[i][2][1])
+					newMDLog.Title.Text = tostring(UserModlogs[i][3])
+					newMDLog.StaffMem.Text = tostring(UserModlogs[i][4])
+					newMDLog.Reason.Text = tostring(UserModlogs[i][2])
+					newMDLog.Date.Text = tostring(UserModlogs[i][1])
 					newMDLog.Parent = MDLogList
 					newMDLog.Visible = true
 				end
