@@ -7,10 +7,10 @@ local toolbar = plugin:CreateToolbar("SR Admin Panel Installation")
 local installbutton = toolbar:CreateButton("SR Admin Installation Panel","Opens up the installation panel that is used to install the SR Admin system.","rbxassetid://14215430082")
 
 local stableadminpanelid = 10477896976
-local stableVersion = "3.0.S0P2"
+local stableVersion = "3.0.S0P6"
 
 local canaryadminpanelid = 11898421409
-local canaryVersion = "3.0.C1P5"
+local canaryVersion = "3.1.C1P0"
 
 local installUI = script:WaitForChild("SRPluginUI")
 
@@ -48,8 +48,13 @@ installbutton.Click:Connect(function()
 	local canaryinstall = v:WaitForChild("Main"):WaitForChild("Canary"):WaitForChild("Install")
 	local close = v:WaitForChild("Main"):WaitForChild("Title"):WaitForChild("Close")
 	
-	if game.ServerScriptService:FindFirstChild("SR_Loader"):FindFirstChild("Config")then
-		local cfg = require(game.ServerScriptService:FindFirstChild("SR_Loader"):FindFirstChild("Config"))
+	v:WaitForChild("Main"):WaitForChild("Canary"):WaitForChild("Version").Text = canaryVersion
+	v:WaitForChild("Main"):WaitForChild("Stable"):WaitForChild("Version").Text = stableVersion
+	
+	local hasConfig = game:GetService("ServerScriptService"):FindFirstChild("SR_Loader"):FindFirstChild("Config")
+	
+	if hasConfig then
+		local cfg = require(hasConfig)
 		if cfg["AdminVersion"] == nil then
 			stableinstall.Text = "UPDATE"
 			stableinstall.Active = false
@@ -65,6 +70,18 @@ installbutton.Click:Connect(function()
 				stableinstall.Text = "AT CURRENT VERSION"
 				stableinstall.Active = false
 				stableinstall.UIStroke.Color = Color3.new(0.243137, 0.243137, 0.243137)
+			else
+				if string.find(cfg["AdminVersion"],"C",1,false) then
+					if cfg["AdminVersion"] ~= canaryVersion then
+						stableinstall.Text = "INSTALL"
+						canaryinstall.Text = "UPDATE"
+					end
+				elseif string.find(cfg["AdminVersion"],"S",1,false) then
+					if cfg["AdminVersion"] ~= stableVersion then
+						stableinstall.Text = "UPDATE"
+						canaryinstall.Text = "INSTALL"
+					end
+				end
 			end
 		end
 		
@@ -113,10 +130,12 @@ installbutton.Click:Connect(function()
 				local prevstufffolder = Instance.new("Folder")
 				prevstufffolder.Name = "Previous_Admin_Panel_Items"
 				prevstufffolder.Parent = game.ServerScriptService
+				
+				local hasAdmin = game:GetService("ServerScriptService"):FindFirstChild("SR_Loader")
 
-				if game.ServerScriptService:FindFirstChild("SR_Loader") then
-					prevconfig = game.ServerScriptService:FindFirstChild("SR_Loader"):FindFirstChild("Config")
-					prevframework = game.ServerScriptService:FindFirstChild("SR_Loader"):FindFirstChild("SR_FrameWork")
+				if hasAdmin ~= nil then
+					prevconfig = hasAdmin:FindFirstChild("Config")
+					prevframework = hasAdmin:FindFirstChild("SR_FrameWork")
 
 					if prevconfig then
 						prevconfig.Parent = prevstufffolder
@@ -254,10 +273,12 @@ installbutton.Click:Connect(function()
 				local prevstufffolder = Instance.new("Folder")
 				prevstufffolder.Name = "Previous_Admin_Panel_Items"
 				prevstufffolder.Parent = game.ServerScriptService
+				
+				local hasAdmin = game:GetService("ServerScriptService"):FindFirstChild("SR_Loader")
 
-				if game.ServerScriptService:FindFirstChild("SR_Loader") then
-					prevconfig = game.ServerScriptService:FindFirstChild("SR_Loader"):FindFirstChild("Config")
-					prevframework = game.ServerScriptService:FindFirstChild("SR_Loader"):FindFirstChild("SR_FrameWork")
+				if hasAdmin ~= nil then
+					prevconfig = hasAdmin:FindFirstChild("Config")
+					prevframework = hasAdmin:FindFirstChild("SR_FrameWork")
 					
 					if prevconfig then
 						prevconfig.Parent = prevstufffolder
