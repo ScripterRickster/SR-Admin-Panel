@@ -118,55 +118,41 @@ local Modlogs = DDS:GetDataStore(dsName,"User_Modlogs")
 
 -- Modlogs
 
-CurrModlogs = {
-	
-}
-
-game.Players.PlayerAdded:Connect(function(plr)
-	if plr then
-		local succ,data = pcall(function()
-			return Modlogs:GetAsync(plr.UserId)
-		end)
-		
-		if succ then
-			if data == nil then
-				table.insert(CurrModlogs,{plr.UserId,{}})
-			else
-				table.insert(CurrModlogs,{plr.UserId,data})
-			end
-		end
-	end
-end)
-
 GetUserModlogs.OnServerInvoke = function(plr,requser)
-	local UsrMdlogs = nil
-	local Type = "Name"
-	if game.Players:GetNameFromUserIdAsync(tonumber(requser)) then
-		Type = "UserId"
-	end
-	
-	if Type == "Name" then
-		local userid = game.Players:GetUserIdFromNameAsync(tostring(requser))
-		if userid then
-			for i=1,#CurrModlogs do
-				if CurrModlogs[i][1] == tonumber(userid) then
-					UsrMdlogs = CurrModlogs[i][2]
-					break
+	if plr and requser then
+		local UsrMdlogs = nil
+		local Type = "Name"
+		if tonumber(requser) then
+			Type = "UserId"
+		end
+
+		if Type == "Name" then
+			local userid = game.Players:GetUserIdFromNameAsync(tostring(requser))
+			if userid then
+				local succ,data = pcall(function()
+					return Modlogs:GetAsync(tonumber(userid))
+				end)
+				if succ then
+					UsrMdlogs = data
 				end
+
+			end
+		else
+			local userid = tonumber(requser)
+			local succ,data = pcall(function()
+				return Modlogs:GetAsync(tonumber(userid))
+			end)
+			if succ then
+				UsrMdlogs = data
 			end
 		end
+
+		return UsrMdlogs
 	else
-		local userid = tonumber(requser)
-		for i=1,#CurrModlogs do
-			if CurrModlogs[i][1] == tonumber(userid) then
-				UsrMdlogs = CurrModlogs[i][2]
-				break
-			end
-		end
+		return nil
 	end
-	
-	return UsrMdlogs
 end
+
 
 
 
@@ -203,18 +189,41 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 			
 			if cmd.LogsToUserModLogs ~= nil then
 				if cmd.LogsToUserModLogs == true and targ~= nil then
-					for i=1,#CurrModlogs do
-						if CurrModlogs[i][1] == targ.UserId then
-							local CurrDate = os.date("*t")
-							
 
-							local month = string.format("%02d", CurrDate.month)  
-							local day = string.format("%02d", CurrDate.day) 
+					local CurrDate = os.date("*t")
 							
-							local DString =  month .. "/" .. day .. "/" .. tostring(CurrDate.year) .. " (MM/DD/YYYY)"
+					local month = string.format("%02d", CurrDate.month)  
+					local day = string.format("%02d", CurrDate.day) 
 							
-							table.insert(CurrModlogs[i][2],{DString,optreason})
+					local DString =  month .. "/" .. day .. "/" .. tostring(CurrDate.year) .. " (MM/DD/YYYY)"
+							
+					local succ,data = pcall(function()
+						if tonumber(targ) then
+							return Modlogs:GetAsync(tonumber(targ))
+						else
+							return Modlogs:GetAsync(tonumber(targ.UserId))
 						end
+								
+					end)
+							
+					if succ then
+						local usernameStr = ""
+						local userModlogs = data
+						table.insert(userModlogs,{DString,optreason,action})
+						local succ2,err2 = pcall(function()
+							if tonumber(targ) then
+								usernameStr = game.Players:GetNameFromUserIdAsync(tonumber(targ))
+								Modlogs:SetAsync(tonumber(targ),userModlogs)
+							else
+								usernameStr = game.Players:GetNameFromUserIdAsync(tonumber(targ.UserId))
+								Modlogs:SetAsync(tonumber(targ.UserId),userModlogs)
+							end
+						end)
+						
+						if not succ2 then
+							print("SR Admin system encountered the following error while trying to save a modlog to the user: "..tostring(usernameStr).." | Error: "..tostring(err2))
+						end
+						
 					end
 				end
 			end
@@ -773,19 +782,7 @@ Players.PlayerRemoving:Connect(function(player)
 	PlrRanks:FindFirstChild(player.Name):Destroy()
 end)
 
-Players.PlayerRemoving:Connect(function(player)
-	for i=1,#CurrModlogs do
-		if CurrModlogs[i][1] == player.UserId then
-			local succ,err = pcall(function()
-				return Modlogs:SetAsync(player.UserId,CurrModlogs[i][2])
-			end)
-			if err then
-				print("SR Admin System encountered the following error while trying to save the data: "..tostring(err))
-			end
-			break
-		end
-	end
-end)
+
 
 -- miscellaneous anti-cheat stuff
 
