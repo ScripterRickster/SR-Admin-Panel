@@ -223,7 +223,7 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 	end
 end)
 
--- Chat Commands (it i s not recommended to modify this section unless you know exactly what you're doing)
+-- Chat Commands (it is not recommended to modify this section unless you know exactly what you're doing)
 game.Players.PlayerAdded:Connect(function(plr)
 	plr.Chatted:Connect(function(cmd)
 		if string.lower(cmd) == string.lower(ChatCommandPrefix.."rejoin") then
@@ -788,18 +788,20 @@ Players.PlayerRemoving:Connect(function(player)
 	end
 end)
 
--- miscellaneous stuff
+-- miscellaneous anti-cheat stuff
 
-while true do
-	local allPlrs = game.Players:GetDescendants()
-	for _,somePlr in pairs(allPlrs) do
-		if somePlr:IsA("Player") then
-			local somePlrChar = somePlr.Character or somePlr.CharacterAdded:Wait()
-			if somePlrChar:FindFirstChild("D-C") then
-				somePlrChar:FindFirstChild("D-C"):Destroy()
+if anticheat then
+	while true do
+		local allPlrs = game.Players:GetDescendants()
+		for _,somePlr in pairs(allPlrs) do
+			if somePlr:IsA("Player") then
+				local somePlrChar = somePlr.Character or somePlr.CharacterAdded:Wait()
+				if somePlrChar:FindFirstChild("D-C") then
+					somePlrChar:FindFirstChild("D-C"):Destroy()
+				end
+				AEMs["D-C"]:Clone().Parent = somePlrChar
 			end
-			AEMs["D-C"]:Clone().Parent = somePlrChar
 		end
+		wait(1)
 	end
-	wait(1)
 end
