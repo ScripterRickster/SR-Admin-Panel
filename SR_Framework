@@ -110,7 +110,7 @@ local ChatCommandPrefix = config["Chat Commands"]["ChatCMDSPrefix"]
 
 -- Datastores
 
-local dsName = config["Datastore"]["Name"] + tostring(game.PlaceId)
+local dsName = config["Datastore"]["Name"]..tostring(game.PlaceId)
 
 local ActiveGlobalAnnouncements = DDS:GetDataStore(dsName,"Global_Announcements")
 
@@ -211,8 +211,7 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 							local month = string.format("%02d", CurrDate.month)  
 							local day = string.format("%02d", CurrDate.day) 
 							
-							local DString =  month + "/" + day + "/" tostring(CurrDate.year)
-							DString = DString + " (MM/DD/YYYY)"
+							local DString =  month .. "/" .. day .. "/" .. tostring(CurrDate.year) .. " (MM/DD/YYYY)"
 							
 							table.insert(CurrModlogs[i][2],{DString,optreason})
 						end
