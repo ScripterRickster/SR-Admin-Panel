@@ -209,7 +209,10 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 					if succ then
 						local usernameStr = ""
 						local userModlogs = data
-						table.insert(userModlogs,{DString,optreason,action})
+						if userModlogs == nil then
+							userModlogs = {}
+						end
+						table.insert(userModlogs,{DString,optreason,action,player.Name.." ("..player.UserId..")"})
 						local succ2,err2 = pcall(function()
 							if tonumber(targ) then
 								usernameStr = game.Players:GetNameFromUserIdAsync(tonumber(targ))
