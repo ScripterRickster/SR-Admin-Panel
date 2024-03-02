@@ -99,6 +99,8 @@ players.PlayerAdded:Connect(function(player)
 
 	local framework2 = script.Parent:WaitForChild("SR_FrameWork")
 	local API = framework2["API's"]
+	local HelpReqUI = framework2["UIs"]["HelpRequests"]:Clone()
+	HelpReqUI.Parent = player.PlayerGui
 
 
 
