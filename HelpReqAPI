@@ -1,0 +1,75 @@
+local helpreq = {}
+
+local currHelpReqs = {}
+
+local HReqCount = 1
+local plrRanks = script.Parent.Parent.PlayerRanks
+
+function helpreq.AddReq(targ: Player)
+	if table.find(currHelpReqs,targ.UserId) == nil then
+		table.insert(currHelpReqs,targ.UserId)
+		local plrs = game.Players:GetChildren()
+		for i=1,#plrs do
+			if plrRanks:FindFirstChild(plrs[i].Name) then
+				local r = plrRanks:FindFirstChild(plrs[i].Name)
+				if r.Value > 0 then
+					local HelpReqUI = plrs[i].PlayerGui:FindFirstChild("HelpRequests")
+					if HelpReqUI then
+						local main = HelpReqUI.Main
+						local newReq = main.Template:Clone()
+						newReq.Name = tostring(targ.UserId)
+						newReq.LayoutOrder = HReqCount
+						newReq.Main.Desc.Text = targ.Name.." ("..targ.UserId..") is requesting staff assistance"
+						newReq.TP:WaitForChild("LocalScript").Enabled = true
+						newReq.Parent = main
+						newReq.Visible = true
+					end
+				end
+			end
+		end
+		
+		HReqCount += 1
+		
+	end
+	
+end
+
+function helpreq.ProcessReq(plr,targ:Player)
+
+	if plr and targ then
+
+		if table.find(currHelpReqs,targ.UserId) then
+
+			local targchar = targ.Character or targ.CharacterAdded:Wait()
+
+
+			local targplrpos = CFrame.new(targchar.PrimaryPart.Position)
+
+			local staffchar = plr.Character or plr.CharacterAdded:Wait()
+
+			local staffmempos = CFrame.new(11.92, 0, 16.28)--staffchar.PrimaryPart.Position)
+
+
+			staffchar.PrimaryPart.CFrame = CFrame.new(Vector3.new(targchar.PrimaryPart.Position))
+			
+			local plrs = game.Players:GetChildren()
+			for i=1,#plrs do
+				if plrRanks:FindFirstChild(plrs[i].Name) then
+					local r = plrRanks:FindFirstChild(plrs[i].Name)
+					if r.Value > 0 then
+						local HelpReqUI = plrs[i].PlayerGui:FindFirstChild("HelpRequests")
+						if HelpReqUI then
+							local main = HelpReqUI.Main
+							if main:FindFirstChild(tostring(targ.UserId)) then
+								main:FindFirstChild(tostring(targ.UserId)):Destroy()
+							end
+						end
+					end
+				end
+			end
+		end
+		
+	end
+end
+
+return helpreq
