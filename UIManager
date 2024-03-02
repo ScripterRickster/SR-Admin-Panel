@@ -15,6 +15,7 @@ local GetRank = SRADMEvents.GetPlayerRank
 local GetThemes = SRADMEvents.GetThemes
 local UpdateChatLogs = SRADMEvents.UpdateChatLogs
 local GetPrefix = SRADMEvents.GetPrefix
+local GetModlogs = SRADMEvents.GetUserModlogs
 
 local Home = script.Parent.Home
 local Commands = script.Parent.Commands
@@ -46,7 +47,7 @@ local CMDTemplate = CommandListFrame.Template
 
 local AvailableCMDS = GetCMDS:InvokeServer()
 
-local Search = CommandListFrame.Parent.SearchFrame.Search
+local CMDSearch = CommandListFrame.Parent.SearchFrame.Search
 
 local Params = CommandDescFrame:WaitForChild("ParameterFrame")
 local SelectedParam = Params:WaitForChild("SelectedParameter")
@@ -69,6 +70,7 @@ local HomeButton = NavBar.Home.Content.Button
 local CommandButton = NavBar.Commands.Content.Button
 local ThemesButton = NavBar.Themes.Content.Button
 local ChatLogsButton = NavBar.ChatLogs.Content.Button
+local ModLogsButton = NavBar.Modlogs.Content.Button
 local CloseButton = NavBar.Close.Content.Button
 local Prefix = NavBar.Prefix.Title
 Prefix.Text = GetPrefix:InvokeServer()
@@ -76,6 +78,10 @@ local RankText = NavBar.Parent:WaitForChild("Thumbnails"):WaitForChild("TextRegi
 --------------------------ChatLogs-------------------------
 local ChatLogsFrame = script.Parent.ChatLogs
 local TotalChatLogs = 0
+--------------------------ModLogs--------------------------
+local ModlogsFrame = script.Parent.Modlogs
+local MDLogSearch = ModlogsFrame.Content.AContent.MFrame.Modlogs.SearchFrame.Search
+local MDLogList = ModlogsFrame.Content.AContent.MFrame.Modlogs.ModlogsList
 --------------------------ReportUI-------------------------
 local ReportUI = script.Parent.Report.Content.AContent.Report.TextRegion
 local ReportButton = ReportUI.Report.Button
@@ -213,9 +219,9 @@ ManageUIEvent.OnClientEvent:Connect(function(action,extraval)
 	end
 end)
 
-Search:GetPropertyChangedSignal("Text"):Connect(function()
-	if Search.Text ~= "" and Search.Text ~= nil then
-		local scmd = Search.Text
+CMDSearch:GetPropertyChangedSignal("Text"):Connect(function()
+	if CMDSearch.Text ~= "" and CMDSearch.Text ~= nil then
+		local scmd = CMDSearch.Text
 		local listedcmds = CommandListFrame:GetChildren()
 		for i=1,#listedcmds do
 			if listedcmds[i].Name ~= "Template" and listedcmds[i].ClassName ~= "UIGridLayout" then
@@ -226,11 +232,35 @@ Search:GetPropertyChangedSignal("Text"):Connect(function()
 				end
 			end
 		end
-	elseif Search.Text == "" then
+	elseif CMDSearch.Text == "" then
 		local listedcmds = CommandListFrame:GetChildren()
 		for i=1,#listedcmds do
 			if listedcmds[i].Name ~= "Template" and listedcmds[i].ClassName ~= "UIGridLayout" then
 				listedcmds[i].Visible = true
+			end
+		end
+	end
+end)
+
+MDLogSearch.FocusLost:Connect(function()
+	local CurrMDList = MDLogList:GetChildren()
+	for i=1,#CurrMDList do
+		if CurrMDList[i].Name ~= "Template" and CurrMDList[i]:IsA("Frame") then
+			CurrMDList[i]:Destroy()
+		end
+	end
+	if MDLogSearch.Text ~= "" and MDLogSearch.Text ~= nil then
+		local UserModlogs = GetModlogs:InvokeServer(MDLogSearch.Text)
+		if UserModlogs ~= nil then
+			for i=1,#UserModlogs do
+				if UserModlogs[i][2][3] ~= nil and UserModlogs[i][2][2] ~= nil and UserModlogs[i][2][1] ~= nil then
+					local newMDLog = MDLogList.Template:Clone()
+					newMDLog.Title.Text = tostring(UserModlogs[i][2][3])
+					newMDLog.Reason.Text = tostring(UserModlogs[i][2][2])
+					newMDLog.Date.Text = tostring(UserModlogs[i][2][1])
+					newMDLog.Parent = MDLogList
+					newMDLog.Visible = true
+				end
 			end
 		end
 	end
@@ -246,6 +276,7 @@ end)
 
 HomeButton.Activated:Connect(function()
 	if ReportPlrOptions.Visible == false then
+		ModlogsFrame.Visible = false
 		Home.Visible = true
 		Commands.Visible = false
 		Themes.Visible = false
@@ -256,6 +287,7 @@ end)
 
 CommandButton.Activated:Connect(function()
 	if ReportPlrOptions.Visible == false then
+		ModlogsFrame.Visible = false
 		Commands.Visible = true
 		Home.Visible = false
 		Themes.Visible = false
@@ -266,6 +298,7 @@ end)
 
 ThemesButton.Activated:Connect(function()
 	if ReportPlrOptions.Visible == false then
+		ModlogsFrame.Visible = false
 		Themes.Visible = true
 		Home.Visible = false
 		Commands.Visible = false
@@ -275,12 +308,29 @@ ThemesButton.Activated:Connect(function()
 end)
 
 ChatLogsButton.Activated:Connect(function()
-	ChatLogsFrame.Visible = true
-	Home.Visible = false
-	Commands.Visible = false
-	Themes.Visible = false
-	SelectedScreen = ChatLogsFrame
+	if ReportPlrOptions.Visible == false then
+		ModlogsFrame.Visible = false
+		ChatLogsFrame.Visible = true
+		Home.Visible = false
+		Commands.Visible = false
+		Themes.Visible = false
+		SelectedScreen = ChatLogsFrame
+	end
+	
 end)
+
+ModLogsButton.Activated:Connect(function()
+	if ReportPlrOptions.Visible == false then
+		ModlogsFrame.Visible = true
+		Commands.Visible = false
+		Home.Visible = false
+		Themes.Visible = false
+		ChatLogsFrame.Visible = false
+		SelectedScreen = ModlogsFrame
+	end
+end)
+
+
 
 CloseButton.Activated:Connect(function()
 	ManageUIEvent:FireServer("delete")
