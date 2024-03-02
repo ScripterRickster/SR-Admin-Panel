@@ -145,13 +145,17 @@ local config = {
 	
 	
 	["Datastore"] = {
-		Name = "DEFAULTCHANGEPLZ"; -- Sets the name of the datastore combined with the place id. PLEASE do NOT keep it as default text to ensure that people dont mess with your datastore.
+		Name = "DEFAULTCHANGEPLZ"; -- sets the name of the datastore combined with the place id. PLEASE do NOT keep it as default text to ensure that people dont mess with your datastore.
 	};
 	
 	
 	["Chat Commands"] = {
 		ChatCMDSEnabled = true; -- Whether chat commands are permitted or not 
 		ChatCMDSPrefix = "?"; -- Prefix for the chat commands if enabled
+	};
+	
+	["Help System"] = {
+		HelpCMD = "!Help"; -- Command for requesting help
 	};
 
 	["Trello Stuff"] = {
@@ -265,7 +269,7 @@ local config = {
 		};
 	};
 	
-	AdminVersion = "3.1.C1P0"; -- DO NOT TOUCH
+	AdminVersion = "3.1.C1P1"; -- DO NOT TOUCH
 
 	
 	
