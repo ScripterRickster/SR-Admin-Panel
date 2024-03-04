@@ -41,8 +41,9 @@ local banlist = config["Banned Users"]
 
 --Datastore stuff
 local DDS = game:GetService("DataStoreService")
-local bandatastore = DDS:GetDataStore(game.PlaceId,"Banned_Users")
-local staffdatastore = DDS:GetDataStore(game.PlaceId,"Staff")
+local dsName = config["Datastore"]["Name"]
+local bandatastore = DDS:GetDataStore(game.PlaceId..dsName,"Banned_Users")
+local staffdatastore = DDS:GetDataStore(game.PlaceId..dsName,"Staff")
 
 -- chat version
 local chatversion 
@@ -89,7 +90,10 @@ local APIs = framework["API's"]
 local TrelloApi = require(APIs.TrelloAPI)
 
 -- overhead tag
-local overheadTagAPI = require(APIs.OverheadTag)
+local overheadTagAPI = require(APIs.OverheadTagAPI)
+
+-- change rank api
+local changeRankAPI = require(APIs.ChangeRankAPI)
 
 -- player service
 
@@ -145,96 +149,18 @@ players.PlayerAdded:Connect(function(player)
 	framework.UIs.Panel.UIManager.RprtInterval.Value = reportcooldown
 	framework.UIs.Panel.UIManager.CMDCooldown.Value = cmdcooldown
 	
-	local checked = false
-	
-
-	if player.UserId == game.CreatorId and checked == false then
-
-		plrrank.Value = customRanks["Owner"]["RankValue"]
-		servplrrank.Value = customRanks["Owner"]["RankValue"]
-
-		checked = true
-	end
-	
-	if groupEnabled and checked == false then
-		local assigned = false
-		for _,v in pairs(groupRanks) do
-			if v["RankId"] == player:GetRankInGroup(groupID) then
-				plrrank.Value = v["RankValue"]
-				servplrrank.Value = v["RankValue"]
-				assigned = true
-				break
-			end
-		end
-		if assigned then
-			checked = true
-		else
-			checked = false
-		end
-	end	
-	if TrelloEnabled and checked == false then
-		local temprank = 0;
-		local board = TrelloApi:GetBoardID(TrelloBoardName)
-		
-		for _,v in pairs(TrelloRanks) do
-			if v["RankListName"] ~= "" then
-				local list = TrelloApi:GetLists(v["RankListName"],board)
-				local cards = TrelloApi:GetCardsInList(list)
-				local assigned = false
-				for _, i in pairs(cards) do
-					if string.find(i.name,player.UserId) or string.find(i.name,player.Name) then
-						temprank = v["RankValue"]
-						assigned = true
-						break
-					end
-				end
-				if assigned then
-					break
-				end
-			end
-		end
-		
-		if temprank >0 then
-			plrrank.Value = temprank
-			servplrrank.Value = temprank
-			checked = true
-		else
-			checked = false
-		end
-	end
-	
-	if permrankchanges and checked == false then
-		local s,rank = pcall(function()
-			return staffdatastore:GetAsync(player.UserId)
-		end)
-
-		if s then
-			plrrank.Value = rank
-			servplrrank.Value = rank
-			checked = true
-		else
-			warn("Admin Panel Encountered An Unknown Error.")
-			player:Kick("Failed to load the rank for the user. Please Rejoin.")
-			checked = false
-		end
-	end
-
-	if checked == false then
-		
-		for _,v in pairs(customRanks) do
-			if (table.find(v["Users"],player.UserId) or table.find(v["Users"],tostring(player.UserId)) or table.find(v["Users"],player.Name)) ~= nil then
-				plrrank.Value = v["RankValue"]
-				servplrrank.Value = v["RankValue"]
-				break
-			end
-		end
-		checked = true
-
-	end
-
 	local plrchannelfolder = Instance.new("Folder")
 	plrchannelfolder.Name = player.UserId
 	plrchannelfolder.Parent = CA
+	
+	
+	local setUserRank = changeRankAPI.LoadRank(player)
+	if setUserRank == false or setUserRank == nil then
+		warn("Failed to load the rank for the user: "..player.Name.." ("..player.UserId..")")
+		player:Kick("Failed to load user rank | Please rejoin")
+	end
+
+	
 	
 	local char = player.Character or player.CharacterAdded:Wait()
 	
@@ -271,14 +197,17 @@ players.PlayerAdded:Connect(function(player)
 		}
 		for i=1,#c do
 			if c[i]:IsA("BasePart") then
-				if table.find(r6,c[i].Name) then
+				local reg = false
+				if table.find(r6,c[i].Name) and reg == false then
 					x+=1
-				elseif table.find(r15,c[i].Name) then
+					reg = true
+				elseif table.find(r15,c[i].Name) and reg == false then
 					x +=1
 				end
 			end
 		end
 		
+		print(x) 
 		if x == #r6 then
 			AEMs.CkVal:Clone().Parent = char[r6[math.random(1,#r6)]]
 		elseif x == #r15 then
@@ -342,6 +271,13 @@ game.Players.PlayerAdded:Connect(function(player)
 	-- chat logs stuff
 	player.Chatted:Connect(function(msg)
 		if msg then
+			
+			local filteredmsg, errors = pcall(function()
+				local filteredmsgResult = TS:FilterStringAsync(msg,player.UserId)
+				local filteredmsg = filteredmsgResult:GetNonChatStringForBroadcastAsync()
+				msg = filteredmsg
+			end)
+			
 			local currTime = tostring((DateTime.now()):FormatLocalTime("LLL","en-us")).." EST/EDT"
 			table.insert(ChatLogs,{player,player.UserId,msg,currTime,MsgNumber})
 			
