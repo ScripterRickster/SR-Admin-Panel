@@ -5,6 +5,7 @@ local PlrRanks = script.Parent.Parent.PlayerRanks
 
 function chatlogAPI.SentMessage(chatlogs)
 	if chatlogs then
+		
 		local currplrs = game.Players:GetChildren()
 		for i=1,#currplrs do
 			if PlrRanks:FindFirstChild(currplrs[i].Name) then
