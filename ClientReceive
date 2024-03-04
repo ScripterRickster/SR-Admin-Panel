@@ -23,54 +23,7 @@ CLTEvent.OnClientEvent:Connect(function(action,optextraval)
 			local char = targplr.Character or targplr.CharacterAdded:Wait()
 			camera.CameraSubject = char
 		end
-	elseif action == "Mute" or action == "Unmute" and (optextraval == true or optextraval == false) then
-		muted = optextraval
-		
-		if action == "Mute" and muted == false then
-			local TextChannels = TCS:WaitForChild("TextChannels"):GetChildren()
-			for i=1,#TextChannels do
-				if TextChannels[i]:IsA("TextChannel") then
-					if string.find(TextChannels[i].Name,"RBXTeam",0,true) then
-						local teamcolor = string.gsub(TextChannels[i].Name,"RBXTeam","")
-						local gameteams = game.Teams:GetChildren()
-						local team
-						for i=1,#gameteams do
-							if tostring(gameteams[i].TeamColor) == tostring(teamcolor) then
-								team = gameteams[i].Name
-								break
-							end 
-						end
-						TextChannels[i]:DisplaySystemMessage("You are now muted within the following channel: "..team)
-					else
-						TextChannels[i]:DisplaySystemMessage("You are now muted within the following channel: "..TextChannels[i].Name)
-					end
-
-				end
-			end
-		elseif action == "Unmute" and muted == true then
-			local TextChannels = TCS:WaitForChild("TextChannels"):GetChildren()
-			for i=1,#TextChannels do
-				if TextChannels[i]:IsA("TextChannel") then
-					if string.find(TextChannels[i].Name,"RBXTeam",0,true) then
-						local teamcolor = string.gsub(TextChannels[i].Name,"RBXTeam","")
-						local gameteams = game.Teams:GetChildren()
-						local team
-						for i=1,#gameteams do
-							if tostring(gameteams[i].TeamColor) == tostring(teamcolor) then
-								team = gameteams[i].Name
-								break
-							end 
-						end
-						TextChannels[i]:DisplaySystemMessage("You are no longer muted within the following channel: "..team)
-					else
-						TextChannels[i]:DisplaySystemMessage("You are no longer muted within the following channel: "..TextChannels[i].Name)
-					end
-					
-				end
-			end
-		end
 	end
-	
 end)
 
 -- basically enables platform stand on the humanoid or not. kinda useless tbh other than the flight stuff
@@ -96,17 +49,15 @@ TCS.OnIncomingMessage = function(message: TextChatMessage)
 	if message.TextSource and TCS.ChatVersion == Enum.ChatVersion.TextChatService and muted == false then
 		local plr = Players:GetPlayerByUserId(message.TextSource.UserId)
 		if plr then
-			local taginfo = GetTagInfo:InvokeServer(plr.Name)
-			if taginfo then
-				local color3 = taginfo.TagColor
+			local taginfo = GetTagInfo:InvokeServer(plr)
+			if taginfo and taginfo[3] == true then
+				local color3 = taginfo[2]
 				local htmlcolor =string.format("#%02X%02X%02X", color3.R * 0xFF, color3.G * 0xFF, color3.B * 0xFF)
 				local properties = Instance.new("TextChatMessageProperties")
-				properties.PrefixText = "<font color='"..htmlcolor.."'>["..taginfo.TagText.."]</font>"..message.PrefixText
+				properties.PrefixText = "<font color='"..htmlcolor.."'>["..taginfo[1].."]</font>"..message.PrefixText
 				return properties
 			end
 		end
-	elseif message.TextSource and TCS.ChatVersion == Enum.ChatVersion.TextChatService and muted == true then
-		message.TextSource.Destroy()
 	end
 end
 
