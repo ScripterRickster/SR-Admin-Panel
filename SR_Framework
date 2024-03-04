@@ -27,6 +27,7 @@ local wbhkAPI = require(APIs.WebhookAPI)
 local helpReqAPI = require(APIs.HelpReqAPI)
 local AEK = require(AEMs["AntiExploitKick"])
 local overheadTagAPI = require(APIs.OverheadTagAPI)
+local rankAPI = require(APIs.RankAPI)
 
 
 
@@ -538,6 +539,12 @@ GetCommands.OnServerInvoke = function(plr)
 			return c
 		end
 		
+	end
+end
+
+GetChatTagInfo.OnServerInvoke = function(plr)
+	if plr then
+		return rankAPI.GetChatTag(plr)
 	end
 end
 
