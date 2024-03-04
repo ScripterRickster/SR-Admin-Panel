@@ -39,6 +39,7 @@ function helpreq.ProcessReq(plr,targ:Player)
 	if plr and targ then
 
 		if table.find(currHelpReqs,targ.UserId) then
+			table.remove(currHelpReqs,table.find(currHelpReqs,targ.UserId))
 
 			local targchar = targ.Character or targ.CharacterAdded:Wait()
 
@@ -46,8 +47,6 @@ function helpreq.ProcessReq(plr,targ:Player)
 			local targplrpos = CFrame.new(targchar.PrimaryPart.Position)
 
 			local staffchar = plr.Character or plr.CharacterAdded:Wait()
-
-			local staffmempos = CFrame.new(11.92, 0, 16.28)--staffchar.PrimaryPart.Position)
 
 
 			staffchar.PrimaryPart.CFrame = CFrame.new(Vector3.new(targchar.PrimaryPart.Position))
