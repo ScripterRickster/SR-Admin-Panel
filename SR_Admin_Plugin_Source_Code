@@ -10,7 +10,7 @@ local stableadminpanelid = 10477896976
 local stableVersion = "3.0.S0P6"
 
 local canaryadminpanelid = 11898421409
-local canaryVersion = "3.1.C1P0"
+local canaryVersion = "3.1.C1P4"
 
 local installUI = script:WaitForChild("SRPluginUI")
 
