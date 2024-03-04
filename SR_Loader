@@ -93,7 +93,7 @@ local TrelloApi = require(APIs.TrelloAPI)
 local overheadTagAPI = require(APIs.OverheadTagAPI)
 
 -- change rank api
-local changeRankAPI = require(APIs.ChangeRankAPI)
+local rankAPI = require(APIs.RankAPI)
 
 -- player service
 
@@ -154,7 +154,7 @@ players.PlayerAdded:Connect(function(player)
 	plrchannelfolder.Parent = CA
 	
 	
-	local setUserRank = changeRankAPI.LoadRank(player)
+	local setUserRank = rankAPI.LoadRank(player)[3]
 	if setUserRank == false or setUserRank == nil then
 		warn("Failed to load the rank for the user: "..player.Name.." ("..player.UserId..")")
 		player:Kick("Failed to load user rank | Please rejoin")
@@ -203,11 +203,12 @@ players.PlayerAdded:Connect(function(player)
 					reg = true
 				elseif table.find(r15,c[i].Name) and reg == false then
 					x +=1
+					reg = true
 				end
 			end
 		end
 		
-		print(x) 
+		
 		if x == #r6 then
 			AEMs.CkVal:Clone().Parent = char[r6[math.random(1,#r6)]]
 		elseif x == #r15 then
