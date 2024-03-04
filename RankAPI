@@ -300,7 +300,7 @@ function changerank.SetRank(plr: Player,rankval)
 		end
 
 		if Trello["TrelloEnabled"] and rankinfo[2] == nil then
-			local board = TrelloAPI:GetBoardID(Trello["TrelloBoardName"])
+			local board = TrelloAPI:GetBoardID(TrelloBoardName)
 			for _,v in pairs(TrelloRanks) do
 				if v["RankListName"] ~= "" then
 					local list = TrelloAPI:GetLists(v["RankListName"],board)
@@ -335,7 +335,7 @@ function changerank.SetRank(plr: Player,rankval)
 		
 		charrank.Value = rankval
 		servplrrank.Value = rankval
-		
+
 		
 		if rankinfo[2] ~= nil and rankinfo[3] ~= nil then
 			rankinfo[4] = true
