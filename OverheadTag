@@ -1,0 +1,148 @@
+local overheadTag = {}
+
+local config = require(script.Parent.Parent.Parent:WaitForChild("SR_Loader"):WaitForChild("Config"))
+
+local overheadTagConfig = config["Overhead Tag"]
+local overheadTagEnabled = overheadTagConfig["Enabled"]
+local overheadTagCMD = overheadTagConfig["EnableDisableTagCMD"]
+
+local staffTagObject = script.Parent.Parent.MiscellaneousStuff.StaffTag
+
+function overheadTag.SwapStates(plr:Player,cmd)
+	if plr and overheadTagEnabled and cmd then
+		if string.lower(cmd) == string.lower(overheadTagCMD) then
+			local char = plr.Character or plr.CharacterAdded:Wait()
+			
+			local cStuff = char:GetChildren()
+			for i=1,#cStuff do
+				if cStuff[i]:IsA("BillboardGui") and cStuff[i]:GetAttribute("StaffTag") then
+					cStuff[i].Enabled = not cStuff[i].Enabled
+					break
+				end
+			end
+		end
+	end
+end
+
+function overheadTag.SetTag(plr:Player)
+	if plr and overheadTagEnabled then
+		local stringrank = nil
+		local rankColor = nil
+		
+		local CustomRanks = config["Custom Ranks"]
+		local Group = config["Group"]
+		local GroupRanks = Group["Ranks"]
+		local Trello = config["Trello Stuff"]
+		local TrelloRanks = Trello["Ranks"]
+		local TrelloAPI = require(script.Parent.Parent["API's"].TrelloAPI)
+
+
+
+		if Group["GroupEnabled"] and stringrank == nil then
+			for _,v in pairs(GroupRanks) do
+				if plr:GetRankInGroup(Group["GroupId"]) == v["RankId"] then
+					stringrank = v["RankName"]
+					rankColor = v["StaffTag"]["TagColor"]
+					break
+				end
+			end
+		end
+
+		if Trello["TrelloEnabled"] and stringrank == nil then
+			local board = TrelloAPI:GetBoardID(Trello["TrelloBoardName"])
+			for _,v in pairs(TrelloRanks) do
+				if v["RankListName"] ~= "" then
+					local list = TrelloAPI:GetLists(v["RankListName"],board)
+					local cards = TrelloAPI:GetCardsInList(list)
+					for _, i in pairs(cards) do
+						if string.find(i.name,plr.UserId) or string.find(i.name,plr.Name) then
+							if TrelloRanks[i]["TagEnabled"] == true then
+								stringrank = v["RankName"]
+								rankColor = v["StaffTag"]["TagColor"]
+							end
+							break
+						end
+					end
+				end
+				if stringrank ~= nil then
+					break
+				end
+			end
+		end
+
+		if stringrank == nil then
+			for _,v in pairs(CustomRanks) do
+				if (table.find(v["Users"],plr.UserId) or table.find(v["Users"],tostring(plr.UserId)) or table.find(v["Users"],plr.Name)) ~= (nil and -1) then
+					if v["TagEnabled"] == true then
+						stringrank = v["RankName"]
+						rankColor = v["StaffTag"]["TagColor"]
+					end
+					break
+				end
+			end
+		end
+		
+		if stringrank ~= nil and rankColor ~= nil then
+			local char = plr.Character or plr.CharacterAdded:Wait()
+			local hasTag = false
+			local cStuff = char:GetChildren()
+			for i=1,#cStuff do
+				if cStuff[i]:IsA("BillboardGui") and cStuff[i]:GetAttribute("StaffTag") then
+					hasTag = true
+					break
+				end
+			end
+			if hasTag == false then
+				local nStaffTag = staffTagObject:Clone()
+				nStaffTag.Main.Text.RankText.Text = tostring(stringrank)
+				nStaffTag.Main.Text.RankText.TextColor3 = rankColor
+				nStaffTag.Main.OverlayT.BackgroundColor3 = rankColor
+				nStaffTag.Main.OverlayB.BackgroundColor3 = rankColor
+
+				nStaffTag.Parent = char
+				nStaffTag.Adornee = char.Head
+				nStaffTag.Enabled = true
+			end
+			
+		end
+	end
+end
+	
+
+function overheadTag.UpdateTag(plr:Player,strRank,color)
+	if plr and strRank and color then
+		local char = plr.Character or plr.CharacterAdded:Wait()
+		if strRank == "Regular / No Rank" then
+			local cStuff = char:GetChildren()
+			for i=1,#cStuff do
+				if cStuff[i]:IsA("BillboardGui") and cStuff[i]:GetAttribute("StaffTag") then
+					cStuff[i]:Destroy()
+					break
+				end
+			end
+		else
+			
+			local userStaffTag = nil
+			local cStuff = char:GetChildren()
+			for i=1,#cStuff do
+				if cStuff[i]:IsA("BillboardGui") and cStuff[i]:GetAttribute("StaffTag") then
+					userStaffTag = cStuff[i]
+					break
+				end
+			end
+			if userStaffTag ~= nil then
+				local RankText = userStaffTag.Main.Text.RankText
+				local cTop = userStaffTag.Main.OverlayT
+				local cBottom = userStaffTag.Main.OverlayB
+				
+				RankText.Text = tostring(RankText)
+				RankText.TextColor3 = color
+				
+				cTop.BackgroundColor3 = color
+				cBottom.BackgroundColor3 = color
+			end
+		end
+	end
+end
+
+return overheadTag
