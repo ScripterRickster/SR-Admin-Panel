@@ -140,6 +140,16 @@ function changerank.SetRank(plr: Player,rankval)
 		local Trello = config["Trello Stuff"]
 		local TrelloRanks = Trello["Ranks"]
 		local TrelloAPI = require(script.Parent.Parent["API's"].TrelloAPI)
+		
+		if permrankchanges then
+			local s,err = pcall(function()
+				staffdatastore:SetAsync(plr.UserId,rankval)
+			end)
+
+			if s == false then
+				print("The admin panel encountered an error saving the user's rank; "..err)
+			end
+		end
 
 
 
@@ -189,6 +199,10 @@ function changerank.SetRank(plr: Player,rankval)
 		
 		charrank.Value = rankval
 		servplrrank.Value = rankval
+		
+		if rankinfo[2] ~= nil and rankinfo[3] ~= nil then
+			rankinfo[4] = true
+		end
 		
 		return rankinfo
 	end
