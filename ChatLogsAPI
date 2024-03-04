@@ -1,0 +1,20 @@
+local chatlogAPI = {}
+
+local UpdateChatLogs = game.ReplicatedStorage.SRAdminEvents.UpdateChatLogs
+local PlrRanks = script.Parent.Parent.PlayerRanks
+
+function chatlogAPI.SentMessage(chatlogs)
+	if chatlogs then
+		local currplrs = game.Players:GetChildren()
+		for i=1,#currplrs do
+			if PlrRanks:FindFirstChild(currplrs[i].Name) then
+				local vRank = PlrRanks:FindFirstChild(currplrs[i].Name).Value
+				if vRank > 0 then
+					UpdateChatLogs:InvokeClient(currplrs[i],chatlogs)
+				end
+			end
+		end
+	end
+end
+
+return chatlogAPI
