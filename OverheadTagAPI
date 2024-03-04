@@ -1,6 +1,6 @@
 local overheadTag = {}
 
-local config = require(script.Parent.Parent.Parent:WaitForChild("SR_Loader"):WaitForChild("Config"))
+local config = require(script.Parent.Parent.Parent:WaitForChild("SR_Loader").Config)
 
 local overheadTagConfig = config["Overhead Tag"]
 local overheadTagEnabled = overheadTagConfig["Enabled"]
@@ -36,6 +36,11 @@ function overheadTag.SetTag(plr:Player)
 		local TrelloRanks = Trello["Ranks"]
 		local TrelloAPI = require(script.Parent.Parent["API's"].TrelloAPI)
 
+		
+		if plr.UserId == game.CreatorId then
+			stringrank = CustomRanks["Owner"]["RankName"]
+			rankColor = CustomRanks["Owner"]["StaffTag"]["TagColor"]
+		end
 
 
 		if Group["GroupEnabled"] and stringrank == nil then
@@ -81,6 +86,7 @@ function overheadTag.SetTag(plr:Player)
 				end
 			end
 		end
+
 		
 		if stringrank ~= nil and rankColor ~= nil then
 			local char = plr.Character or plr.CharacterAdded:Wait()
