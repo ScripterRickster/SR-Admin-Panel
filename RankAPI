@@ -34,6 +34,11 @@ function changerank.GetChatTag(plr: Player)
 		
 		local rankval = plrranks:FindFirstChild(plr.Name).Value
 		
+		if rankval == 0 then
+			rankinfo[3] = false
+			return rankinfo
+		end
+		
 		if group["GroupEnabled"] and rankinfo[2] == nil then
 			for _,v in pairs(groupRanks) do
 				if v["RankValue"] == rankval then
@@ -267,14 +272,25 @@ end
 
 function changerank.SetRank(plr: Player,rankval)
 	if plr and tonumber(rankval) then
+		
 
 		local char = plr.Character or plr.CharacterAdded:Wait()
 		
 		local charrank = char:FindFirstChild("Rank")
 		local servplrrank = plrranks:FindFirstChild(plr.Name)
 		
+		
 		local rankinfo = {rankval,nil,nil,false,false} --[[ {rankval, stringrank, rankcolor, successful?, tagenabled } ]]
-
+		
+		if rankval == 0 then
+			rankinfo[5] = false
+			rankinfo[4] = true
+			rankinfo[3] = ""
+			rankinfo[2] = ""
+			charrank.Value = 0
+			servplrrank.Value = 0
+			return rankinfo
+		end
 
 		
 		if permrankchanges then
