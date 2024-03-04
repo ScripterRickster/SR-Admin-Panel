@@ -26,6 +26,7 @@ local APIs = script["API's"]
 local wbhkAPI = require(APIs.WebhookAPI)
 local helpReqAPI = require(APIs.HelpReqAPI)
 local AEK = require(AEMs["AntiExploitKick"])
+local overheadTagAPI = require(APIs.OverheadTag)
 
 
 
@@ -258,6 +259,7 @@ end)
 -- Chat Commands (it is not recommended to modify this section unless you know exactly what you're doing)
 game.Players.PlayerAdded:Connect(function(plr)
 	plr.Chatted:Connect(function(cmd)
+		overheadTagAPI.SwapStates(plr,cmd)
 		if string.lower(cmd) == string.lower(ChatCommandPrefix.."rejoin") then
 			TPS:Teleport(game.PlaceId, plr)
 			return
