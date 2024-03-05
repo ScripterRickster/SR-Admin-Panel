@@ -22,15 +22,13 @@ local TrelloRanks = Trello["Ranks"]
 local permrankchanges = config["Miscellaneous"]["PermRankChanges"]
 
 local group = config["Group"]
-local groupEnabled = group["GroupEnabled"]
-local groupID = group["GroupId"]
-local groupRanks = group["Ranks"]
+
 
 local customRanks = config["Custom Ranks"]
 
 function changerank.GetChatTag(plr: Player)
 	if plr then
-		local rankinfo = {nil,nil,true} --[[ string rank, color value, tag enabled ]]
+		local rankinfo = {nil,nil,true,nil} --[[ string rank, color value, tag enabled, rank name ]]
 		
 		local rankval = plrranks:FindFirstChild(plr.Name).Value
 		
@@ -39,15 +37,28 @@ function changerank.GetChatTag(plr: Player)
 			return rankinfo
 		end
 		
-		if group["GroupEnabled"] and rankinfo[2] == nil then
-			for _,v in pairs(groupRanks) do
-				if v["RankValue"] == rankval then
-					rankinfo[1] = v["StaffTag"]["TagText"]
-					rankinfo[2] = v["StaffTag"]["TagColor"]
-					rankinfo[3] = v["TagEnabled"]
+		if rankinfo[2] == nil then
+			for _,g in pairs(group) do
+				local groupEnabled = g["GroupEnabled"]
+				local groupID = g["GroupId"]
+				local groupRanks = g["Ranks"]
+				
+				if groupEnabled and rankinfo[2] == nil then
+					for _,v in pairs(groupRanks) do
+						if v["RankValue"] == rankval then
+							rankinfo[1] = v["StaffTag"]["TagText"]
+							rankinfo[2] = v["StaffTag"]["TagColor"]
+							rankinfo[3] = v["TagEnabled"]
+							rankinfo[4] = v["RankName"]
+							break
+						end
+					end
+				else
+					break
 				end
 			end
 		end
+		
 
 		if Trello["TrelloEnabled"] and rankinfo[2] == nil then
 			local board = TrelloAPI:GetBoardID(Trello["TrelloBoardName"])
@@ -60,6 +71,7 @@ function changerank.GetChatTag(plr: Player)
 							rankinfo[1] = v["StaffTag"]["TagText"]
 							rankinfo[2] = v["StaffTag"]["TagColor"]
 							rankinfo[3] = v["TagEnabled"]
+							rankinfo[4] = v["RankName"]
 							break
 						end
 					end
@@ -77,6 +89,7 @@ function changerank.GetChatTag(plr: Player)
 						rankinfo[1] = v["StaffTag"]["TagText"]
 						rankinfo[2] = v["StaffTag"]["TagColor"]
 						rankinfo[3] = v["TagEnabled"]
+						rankinfo[4] = v["RankName"]
 					end
 					break
 				end
@@ -124,22 +137,27 @@ function changerank.LoadRank(plr: Player)
 				
 				
 				
-				if groupEnabled and checked2 == false then
-					local assigned = false
-					for _,v in pairs(groupRanks) do
-						if v["RankValue"] == rank then
-							rankinfo[1] = v["RankName"]
-							rankinfo[2] = v["StaffTag"]["TagColor"]
-							rankinfo[4] = v["TagEnabled"]
-							assigned = true
+				if checked2 == false then
+					for _,g in pairs(group) do
+						local groupEnabled = g["GroupEnabled"]
+						local groupID = g["GroupId"]
+						local groupRanks = g["Ranks"]
+						local assigned = false
+						for _,v in pairs(groupRanks) do
+							if v["RankValue"] == rank then
+								rankinfo[1] = v["RankName"]
+								rankinfo[2] = v["StaffTag"]["TagColor"]
+								rankinfo[4] = v["TagEnabled"]
+								assigned = true
+								break
+							end
+						end
+						if assigned then
+							checked2 = true
 							break
 						end
 					end
-					if assigned then
-						checked2 = true
-					else
-						checked2 = false
-					end
+
 				end	
 				if TrelloEnabled and checked2 == false then
 					local temprank = 0;
@@ -190,26 +208,32 @@ function changerank.LoadRank(plr: Player)
 				checked2 = false
 			end
 		end
-
-		if groupEnabled and checked == false then
-			local assigned = false
-			for _,v in pairs(groupRanks) do
-				if v["RankId"] == plr:GetRankInGroup(groupID) then
-					plrrank.Value = v["RankValue"]
-					servplrrank.Value = v["RankValue"]
-					rankinfo[1] = v["RankName"]
-					rankinfo[2] = v["StaffTag"]["TagColor"]
-					rankinfo[4] = v["TagEnabled"]
-					assigned = true
-					break
+		
+		for _,g in pairs(group) do
+			local groupEnabled = g["GroupEnabled"]
+			local groupID = g["GroupId"]
+			local groupRanks = g["Ranks"]
+			if checked == false then
+				local assigned = false
+				for _,v in pairs(groupRanks) do
+					if v["RankId"] == plr:GetRankInGroup(groupID) then
+						plrrank.Value = v["RankValue"]
+						servplrrank.Value = v["RankValue"]
+						rankinfo[1] = v["RankName"]
+						rankinfo[2] = v["StaffTag"]["TagColor"]
+						rankinfo[4] = v["TagEnabled"]
+						assigned = true
+						break
+					end
 				end
-			end
-			if assigned then
-				checked = true
-			else
-				checked = false
-			end
-		end	
+				if assigned then
+					checked = true
+				else
+					checked = false
+				end
+			end	
+		end
+		
 		if TrelloEnabled and checked == false then
 			local temprank = 0;
 			local board = TrelloAPI:GetBoardID(TrelloBoardName)
@@ -304,16 +328,25 @@ function changerank.SetRank(plr: Player,rankval)
 		end
 
 
+		for _,g in pairs(group) do
+			local groupEnabled = g["GroupEnabled"]
+			local groupID = g["GroupId"]
+			local groupRanks = g["Ranks"]
+			if groupEnabled and rankinfo[2] == nil then
+				for _,v in pairs(groupRanks) do
+					local groupEnabled = g["GroupEnabled"]
+					local groupID = g["GroupId"]
+					local groupRanks = g["Ranks"]
 
-		if group["GroupEnabled"] and rankinfo[2] == nil then
-			for _,v in pairs(groupRanks) do
-				if v["RankValue"] == rankval then
-					rankinfo[2] = v["StaffTag"]["TagText"]
-					rankinfo[3] = v["StaffTag"]["TagColor"]
-					rankinfo[5] = v["TagEnabled"]
+					if v["RankValue"] == rankval then
+						rankinfo[2] = v["StaffTag"]["TagText"]
+						rankinfo[3] = v["StaffTag"]["TagColor"]
+						rankinfo[5] = v["TagEnabled"]
+					end
 				end
 			end
 		end
+		
 
 		if Trello["TrelloEnabled"] and rankinfo[2] == nil then
 			local board = TrelloAPI:GetBoardID(TrelloBoardName)
