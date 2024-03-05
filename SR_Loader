@@ -11,16 +11,6 @@ local TS = game:GetService("TextChatService")
 
 local config = require(script.Config)
 
-
--- group stuff
-local group = config["Group"]
-local groupEnabled = group["GroupEnabled"]
-local groupID = group["GroupId"]
-local groupRanks = group["Ranks"]
-
--- ranks
-local customRanks = config["Custom Ranks"]
-
 --cooldowns
 local cmdcooldown = config["Cooldowns"]["CommandCooldown"]
 local servmsgcooldown = config["Cooldowns"]["ServerMsgCooldown"]
@@ -29,9 +19,6 @@ local reportcooldown = config["Cooldowns"]["ReportCooldown"]
 -- stafflock
 
 local stafflock = script.StaffLock
-
---perm rank changes
-local permrankchanges = config["Miscellaneous"]["PermRankChanges"]
 
 --banlist
 local banlist = config["Banned Users"]
