@@ -1,7 +1,7 @@
 local changerank = {}
 
 
-
+local MPS = game:GetService("MarketplaceService")
 
 local config = require(script.Parent.Parent.Parent:WaitForChild("SR_Loader").Config)
 local plrranks = script.Parent.Parent:WaitForChild("PlayerRanks")
@@ -18,6 +18,8 @@ local TrelloBoardName = Trello["TrelloBoardName"]
 local TrelloBanListName = Trello["BanListName"]
 local TrelloAPIKey = Trello["TrelloAPIKey"]
 local TrelloRanks = Trello["Ranks"]
+
+local Gamepasses = config["Gamepasses"]
 
 local permrankchanges = config["Miscellaneous"]["PermRankChanges"]
 
@@ -53,11 +55,11 @@ function changerank.GetChatTag(plr: Player)
 							break
 						end
 					end
-				else
-					break
 				end
 			end
 		end
+		
+		
 		
 
 		if Trello["TrelloEnabled"] and rankinfo[2] == nil then
@@ -96,6 +98,20 @@ function changerank.GetChatTag(plr: Player)
 			end
 		end
 		
+		if rankinfo[2] == nil then
+			for _,g in pairs(Gamepasses) do
+				local gamepassEnabled = g["GamepassEnabled"]
+				local gamepassID = g["GamepassID"]
+				local v = g["Rank"]
+				if gamepassEnabled and gamepassID ~= nil and MPS:UserOwnsGamePassAsync(plr.UserId,gamepassID) then
+					rankinfo[1] = v["StaffTag"]["TagText"]
+					rankinfo[2] = v["StaffTag"]["TagColor"]
+					rankinfo[3] = v["TagEnabled"]
+					rankinfo[4] = v["RankName"]
+					break
+				end
+			end
+		end
 		
 		
 		return rankinfo
@@ -279,11 +295,30 @@ function changerank.LoadRank(plr: Player)
 					rankinfo[1] = v["RankName"]
 					rankinfo[2] = v["StaffTag"]["TagColor"]
 					rankinfo[4] = v["TagEnabled"]
+					checked = true
 					break
 				end
 			end
-			checked = true
 
+		end
+		
+		if checked == false then
+			if rankinfo[2] == nil then
+				for _,g in pairs(Gamepasses) do
+					local gamepassEnabled = g["GamepassEnabled"]
+					local gamepassID = g["GamepassID"]
+					local v = g["Rank"]
+					if gamepassEnabled and gamepassID ~= nil and MPS:UserOwnsGamePassAsync(plr.UserId,gamepassID) then
+						plrrank.Value = v["RankValue"]
+						servplrrank.Value = v["RankValue"]
+						rankinfo[1] = v["RankName"]
+						rankinfo[2] = v["StaffTag"]["TagColor"]
+						rankinfo[4] = v["TagEnabled"]
+						checked = true
+						break
+					end
+				end
+			end
 		end
 		
 		if checked then
