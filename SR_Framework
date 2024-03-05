@@ -13,7 +13,11 @@ local SStorage = game:GetService("ServerStorage")
 
 local Players = game:GetService("Players")
 
+local HTTPS = game:GetService("HttpService")
+
 local TCS = game:GetService("TextChatService")
+
+local MS = game:GetService("MessagingService")
 
 local ServerScriptService = game:GetService("ServerScriptService")
 
@@ -28,6 +32,36 @@ local helpReqAPI = require(APIs.HelpReqAPI)
 local AEK = require(AEMs["AntiExploitKick"])
 local overheadTagAPI = require(APIs.OverheadTagAPI)
 local rankAPI = require(APIs.RankAPI)
+
+
+-- global announcements stuff
+
+local msgAnnounced = script.Values.ActiveAnnouncement
+
+local UIs = script.UIs
+local msgui = UIs.ServerMessage
+
+
+
+MS:SubscribeAsync("Global Announcements",function(info)
+	if info then
+		info = HTTPS:JSONDecode(info.Data)
+		repeat wait() until msgAnnounced.Value == false
+		msgAnnounced.Value = true
+		local gameplrs = game.Players:GetChildren()
+
+		for i=1,#gameplrs do
+			if gameplrs[i] then
+				local msguic = msgui:Clone()
+				msguic.Modal.Desc.Stats.TextRegion.Role.Text = tostring(info['Message']) -- msg
+				msguic.Modal.Info.Stats.Plr.UserId.Value = tonumber(info['Staff UserID']) -- staff id
+				msguic.Modal.Info.Stats.TextRegion.Title.Text = tostring(info['Staff Name']) -- staff name
+				msguic.Modal.Info.Stats.TextRegion.Role.Text = tostring(info['Rank Name']) -- rank str
+				msguic.Parent = gameplrs[i].PlayerGui
+			end
+		end
+	end
+end)
 
 
 
@@ -69,7 +103,6 @@ local vehicles = SStorage.Vehicles
 -- rank stuff
 local customRanks = config["Custom Ranks"]
 local groupStuff = config["Group"]
-local groupRanks = groupStuff["Ranks"]
 local trelloStuff = config["Trello Stuff"]
 local trelloRanks = trelloStuff["Ranks"]
 
@@ -135,8 +168,6 @@ local ChatCommandPrefix = config["Chat Commands"]["ChatCMDSPrefix"]
 
 local dsName = config["Datastore"]["Name"]..tostring(game.PlaceId)
 
-local ActiveGlobalAnnouncements = DDS:GetDataStore(dsName,"Global_Announcements")
-
 local Modlogs = DDS:GetDataStore(dsName,"User_Modlogs")
 
 -- Modlogs
@@ -176,6 +207,7 @@ GetUserModlogs.OnServerInvoke = function(plr,requser)
 	end
 end
 
+-- Global Announcements
 
 
 
@@ -202,7 +234,7 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 				cmd.ExecuteCommand(targ,player,staffrank,targrank)
 			elseif action == "Fly" or action == "Set Team"  or action == "Give Tool" or action == "Remove Tool" or action == "Set Rank" or action == "Set JumpPower" or action == "Set Walkspeed" and optextraval then
 				cmd.ExecuteCommand(targ,player,staffrank,targrank,optextraval)
-			elseif action == "Set Time" or action == "Announce" or action == "Spawn Vehicle"  and optextraval then
+			elseif action == "Set Time" or action == "Announce" or action == "Global Announce" or action == "Spawn Vehicle"  and optextraval then
 				cmd.ExecuteCommand(player,staffrank,optextraval)
 			elseif action == "Staff Lock" and optextraval ~= "" and optreason ~= "" then
 				cmd.ExecuteCommand(player,staffrank,optreason,optextraval)
@@ -342,7 +374,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 						if optextraval ~= "" and optextraval ~= nil then
 							actionreq.ExecuteCommand(targ,plr,staffrank,targrank,optextraval)
 						end
-					elseif action == "set time" or action == "announce" or action == "spawn vehicle" then
+					elseif action == "set time" or action == "announce" or action == "global announce" or action == "spawn vehicle" then
 						local optextraval = ""
 						for i=actionindex,paramlength do
 							optextraval = optextraval .. parameters[i] .. " "
@@ -426,89 +458,6 @@ ManageUI.OnServerEvent:Connect(function(plr,action,targ)
 	end
 end)
 
--- Get Chat Tags For New TextChatService
-GetChatTagInfo.OnServerInvoke = function(plr,targ)
-	if plr and targ then
-		local tagData
-		local assigned = false
-		local targplr = game.Players:FindFirstChild(targ)
-		if targplr then
-			local plrrank = PlrRanks:FindFirstChild(targplr.Name).Value
-			if plrrank > 0 then
-				local CustomRanks = config["Custom Ranks"]
-
-				local Group = config["Group"]
-				local GroupEnabled = Group["GroupEnabled"]
-				local GroupID = Group["GroupId"]
-				local GroupRanks = Group["Ranks"]
-
-				local Trello = config["Trello Stuff"]
-				local TrelloEnabled = Trello["TrelloEnabled"]
-				local TrelloRanks = Trello["Ranks"]
-				local TrelloBoardName = Trello["TrelloBoardName"]
-				local TrelloAPI = require(script["API's"].TrelloAPI)
-				
-				if TrelloEnabled  and assigned == false then
-					local board = TrelloAPI:GetBoardID(TrelloBoardName)
-					for _,v in pairs(TrelloRanks) do
-						if v["RankListName"] ~= "" then
-							local list = TrelloAPI:GetLists(v["RankListName"],board)
-							local cards = TrelloAPI:GetCardsInList(list)
-							local assigned = false
-							for _, i in pairs(cards) do
-								if string.find(i.name,plr.UserId) or string.find(i.name,plr.Name) then
-									if TrelloRanks[i]["TagEnabled"] == true then
-										tagData = TrelloRanks[i]["StaffTag"]
-									end
-									assigned = true
-									break
-								end
-							end
-							if assigned then
-								break
-							end
-						end
-					end
-				end
-
-				if GroupEnabled and assigned == false then
-					for _,v in pairs(GroupRanks) do
-						if v["RankId"] == plr:GetRankInGroup(GroupID) then
-							if v["TagEnabled"] == true then
-								tagData = v["StaffTag"]
-							end
-							assigned = true
-							break
-						end
-					end
-				end
-				
-				
-				if assigned == false then
-					if plr.UserId == game.CreatorId and CustomRanks["Owner"]["TagEnabled"] then
-						tagData = CustomRanks["Owner"]["StaffTag"]
-						assigned = true
-					else
-						for _,v in pairs(CustomRanks) do
-							if (table.find(v["Users"],plr.UserId) or table.find(v["Users"],tostring(plr.UserId)) or table.find(v["Users"],plr.Name)) ~= (nil and -1) then
-								if v["TagEnabled"] == true then
-									tagData = v["StaffTag"]
-								end
-								assigned = true
-								break
-							end
-						end
-					end
-					
-				end
-	
-			end
-		end
-		if tagData ~= nil then
-			return tagData
-		end
-	end
-end
 
 -- Get Themes
 
@@ -542,6 +491,8 @@ GetCommands.OnServerInvoke = function(plr)
 	end
 end
 
+-- Get Chat Tag Information
+
 GetChatTagInfo.OnServerInvoke = function(plr)
 	if plr then
 		return rankAPI.GetChatTag(plr)
@@ -574,15 +525,18 @@ GetPlrRank.OnServerInvoke = function(plr)
 				assigned = true
 			end
 			
-			if groupStuff["GroupEnabled"] and assigned == false then
-				for _,v in pairs(groupRanks) do
-					if v["RankValue"] == r then
-						table.insert(info,v["RankName"])
-						assigned = true
-						break
+			for _,g in pairs(groupStuff) do
+				if g["GroupEnabled"] and assigned == false then
+					for _,v in pairs(g["Ranks"]) do
+						if v["RankValue"] == r then
+							table.insert(info,v["RankName"])
+							assigned = true
+							break
+						end
 					end
 				end
 			end
+			
 			
 			if trelloStuff["TrelloEnabled"] and assigned == false then
 				for _,v in pairs(trelloRanks) do
