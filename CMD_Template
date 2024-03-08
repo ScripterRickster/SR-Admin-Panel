@@ -24,7 +24,10 @@ local wbhkenabled = config["Webhook Logging"]["WebhookEnabled"]
 
 --Command Execution Function
 function Template.ExecuteCommand(Parameters)
+	local cmdSuccess = false
 	
+	
+	return cmdSuccess
 	
 end
 
