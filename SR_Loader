@@ -109,9 +109,7 @@ players.PlayerAdded:Connect(function(player)
 		player:Kick("You have been banned from the experience")
 		return
 
-	elseif bandatastore:GetAsync(player.UserId) then
-		player:Kick("You have been banned from this experience")
-		return
+	
 	elseif TrelloEnabled == true then
 		local BanBoardID = TrelloApi:GetBoardID(TrelloBoardName)
 
@@ -122,6 +120,60 @@ players.PlayerAdded:Connect(function(player)
 				player:Kick("You have been banned from this experience")
 			end
 		end
+	else
+		
+		local baninfo = nil
+		local banstoreData,err = pcall(function()
+			baninfo = bandatastore:GetAsync(player.UserId)
+		end)
+
+		if baninfo ~= nil and type(baninfo) == "table" then
+			if baninfo[4] == true then
+				
+				if baninfo[3] == true then
+					player:Kick("You have been banned from this experience | Length: Infinite | Time Remaining: Infinite | Reason: "..tostring(baninfo[1]))
+					return
+				else
+					
+					local banDate = string.split(baninfo[5],"/")
+					
+					local roundedDuration = tonumber(baninfo[2])
+					
+					local banDateTFormat = os.time({year = tonumber(banDate[3]),month = tonumber(banDate[1]), day = tonumber(banDate[2])  })
+					
+					local tempCurrDate = string.split(os.date("%x"),"/")
+					local currDate = string.split(tempCurrDate[1].."/"..tempCurrDate[2].."/"..tostring(os.date("*t").year),"/")
+					
+					local currDateTFormat = os.time({year = tonumber(currDate[3]),month = tonumber(currDate[1]), day = tonumber(currDate[2])  })
+					
+					local diff = currDateTFormat - banDateTFormat
+					local days = math.floor(diff / 86400)
+					
+					if days < roundedDuration then
+						player:Kick("You have been banned from this experience | Length: "..baninfo[2].." day(s) | Time Remaining: "..roundedDuration-days.." days | Reason: "..tostring(baninfo[1]))
+						return
+					else
+						local succ,err = pcall(function()
+							bandatastore:SetAsync(player.UserId,{nil,nil,false,false,nil}) -- {reason, timeleft, is permanment, is bannable, time when banned}
+						end)
+
+						if err then
+							print("SR Admin System encountered the following error while attempting to remove a ban: "..tostring(err))
+						end
+					end
+
+				end
+			end
+		else
+			local succ,err = pcall(function()
+				bandatastore:SetAsync(player.UserId,{nil,nil,false,false,nil})
+			end)
+
+			if err then
+				print("SR Admin System encountered the following error while attempting to set a default value: "..tostring(err))
+			end
+		end
+			
 	end
 
 
@@ -270,8 +322,10 @@ game.Players.PlayerAdded:Connect(function(player)
 			table.insert(ChatLogs,{player,player.UserId,msg,currTime,MsgNumber})
 			
 			local plrrank = script.Parent:WaitForChild("SR_FrameWork"):WaitForChild("PlayerRanks"):FindFirstChild(tostring(player.Name))
-			if plrrank.Value > 0 then
-				ChatlogAPI.SentMessage(ChatLogs)
+			if plrrank then
+				if plrrank.Value > 0 then
+					ChatlogAPI.SentMessage(ChatLogs)
+				end
 			end
 			MsgNumber += 1
 		end
