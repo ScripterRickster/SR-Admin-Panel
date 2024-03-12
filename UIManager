@@ -196,6 +196,7 @@ ManageUIEvent.OnClientEvent:Connect(function(action,extraval)
 							local tempc = CMDTemplate:Clone()
 							tempc.Title.Text = AvailableCMDS[i][1]
 							tempc.Desc.Text = AvailableCMDS[i][2]
+							tempc.Alias.Text = AvailableCMDS[i][3]
 							tempc.Visible = true
 							tempc.Name = AvailableCMDS[i][1]
 							tempc.Parent = CommandListFrame
@@ -204,6 +205,7 @@ ManageUIEvent.OnClientEvent:Connect(function(action,extraval)
 						local tempc = CMDTemplate:Clone()
 						tempc.Title.Text = AvailableCMDS[i][1]
 						tempc.Desc.Text = AvailableCMDS[i][2]
+						tempc.Alias.Text = AvailableCMDS[i][3]
 						tempc.Visible = true
 						tempc.Name = AvailableCMDS[i][1]
 						tempc.Parent = CommandListFrame
