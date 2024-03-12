@@ -122,6 +122,7 @@ for i=1,#AvailableCMDS do
 		local temp = CMDTemplate:Clone()
 		temp.Title.Text = AvailableCMDS[i][1]
 		temp.Desc.Text = AvailableCMDS[i][2]
+		temp.Alias.Text = AvailableCMDS[i][3]
 		temp.Visible = true
 		temp.Name = AvailableCMDS[i][1]
 		temp.Parent = CommandListFrame
