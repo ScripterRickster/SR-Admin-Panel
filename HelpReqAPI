@@ -49,7 +49,7 @@ function helpreq.ProcessReq(plr,targ:Player)
 			local staffchar = plr.Character or plr.CharacterAdded:Wait()
 
 
-			staffchar.PrimaryPart.CFrame = CFrame.new(Vector3.new(targchar.PrimaryPart.Position))
+			staffchar.PrimaryPart.CFrame = CFrame.new(Vector3.new(targchar.PrimaryPart.Position.X,targchar.PrimaryPart.Position.Y + 20,targchar.PrimaryPart.Position.Z))
 			
 			local plrs = game.Players:GetChildren()
 			for i=1,#plrs do
