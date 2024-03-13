@@ -201,6 +201,7 @@ players.PlayerAdded:Connect(function(player)
 	
 	
 	local char = player.Character or player.CharacterAdded:Wait()
+	overheadTagAPI.SetTag(player)
 	
 	if AntiExploitEnabled then
 		local c = char:GetChildren()
@@ -278,7 +279,7 @@ players.PlayerAdded:Connect(function(player)
 		end
 	end
 	
-	
+
 end)
 
 -- tool stuff
