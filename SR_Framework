@@ -385,17 +385,30 @@ game.Players.PlayerAdded:Connect(function(plr)
 					elseif action == "freeze" or action == "unfreeze" or action == "unfly" or action == "view" or action == "kill" or action == "god" or action == "ungod" or action == "refresh" then
 						cmdSuccess = actionreq.ExecuteCommand(targ,plr,staffrank,targrank)
 					elseif action == "fly" or action == "set team"  or action == "give tool" or action == "remove tool" or action == "set rank" then
-						local optextraval = ""
-						for i=actionindex,paramlength do
-							if i == paramlength then
-								optextraval = optextraval .. parameters[i]
-							else
-								optextraval = optextraval .. parameters[i] .. " "
+						if action ~= "give tool" and action ~= "remove tool" then
+							local optextraval = ""
+							for i=actionindex,paramlength do
+								if i == paramlength then
+									optextraval = optextraval .. parameters[i]
+								else
+									optextraval = optextraval .. parameters[i] .. " "
+								end
+							end
+							if optextraval ~= "" and optextraval ~= nil then
+								cmdSuccess = actionreq.ExecuteCommand(targ,plr,staffrank,targrank,optextraval)
+							end
+						else
+							local optextraval = {}
+							
+							for i=actionindex,paramlength do
+								table.insert(optextraval,parameters[i])
+							end
+							
+							if optextraval ~= "" and optextraval ~= nil then
+								cmdSuccess = actionreq.ExecuteCommand(targ,plr,staffrank,targrank,optextraval)
 							end
 						end
-						if optextraval ~= "" and optextraval ~= nil then
-							cmdSuccess = actionreq.ExecuteCommand(targ,plr,staffrank,targrank,optextraval)
-						end
+						
 					elseif action == "set time" or action == "announce" or action == "global announce" or action == "spawn vehicle" then
 						local optextraval = ""
 						for i=actionindex,paramlength do
