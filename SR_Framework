@@ -227,13 +227,13 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 			
 			local cmdSuccess = false
 			
-			if action == "Mute" or action == "Unmute" or action == "Warn" or action == "Kick" or action == "Bring" or action == "Unban" or action == "Perm Kick" and optreason then
+			if action == "Mute" or action == "Unmute" or action == "Warn" or action == "Kick" or action == "Bring" or action == "Unban" or action == "Perm Kick" or action == "Teleport To" and optreason then
 				cmdSuccess = cmd.ExecuteCommand(targ,player,staffrank,targrank,optreason)
 			elseif action == "Ban" then
 				cmdSuccess = cmd.ExecuteCommand(targ,player,staffrank,targrank,optreason,optextraval)
 			elseif action == "Shutdown" and optreason then
 				cmdSuccess = cmd.ExecuteCommand(player,staffrank,optreason)
-			elseif action == "Freeze" or action == "Unfreeze" or action == "Unfly" or action == "View" or action == "Kill" or action == "God" or action == "Ungod" then
+			elseif action == "Freeze" or action == "Unfreeze" or action == "Unfly" or action == "View" or action == "Kill" or action == "God" or action == "Ungod" or action == "Refresh" then
 				cmdSuccess = cmd.ExecuteCommand(targ,player,staffrank,targrank)
 			elseif action == "Fly" or action == "Set Team"  or action == "Give Tool" or action == "Remove Tool" or action == "Set Rank" or action == "Set JumpPower" or action == "Set Walkspeed" and optextraval then
 				cmdSuccess = cmd.ExecuteCommand(targ,player,staffrank,targrank,optextraval)
@@ -359,7 +359,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 					
 					local optreason = ""
 					
-					if action == "mute" or action == "unmute" or action == "warn" or action == "kick" or action == "bring" or action == "Unban" or action == "perm kick" then
+					if action == "mute" or action == "unmute" or action == "warn" or action == "kick" or action == "bring" or action == "Unban" or action == "perm kick" or action == "teleport to" then
 						for i=actionindex,paramlength do
 							optreason = optreason .. parameters[i] .. " "
 						end
@@ -382,7 +382,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 						if optreason ~= "" and optreason ~= nil then
 							cmdSuccess = actionreq.ExecuteCommand(plr,staffrank,optreason)
 						end
-					elseif action == "freeze" or action == "unfreeze" or action == "unfly" or action == "view" or action == "kill" or action == "god" or action == "ungod" then
+					elseif action == "freeze" or action == "unfreeze" or action == "unfly" or action == "view" or action == "kill" or action == "god" or action == "ungod" or action == "refresh" then
 						cmdSuccess = actionreq.ExecuteCommand(targ,plr,staffrank,targrank)
 					elseif action == "fly" or action == "set team"  or action == "give tool" or action == "remove tool" or action == "set rank" then
 						local optextraval = ""
@@ -555,8 +555,10 @@ GetCommands.OnServerInvoke = function(plr)
 					local v = require(AllCommands[i])
 					local n = AllCommands[i].Name
 					local r = v.RankRequired
+					local a = v.ChatCMDAlias
+
 					if r <=plrrank then
-						local sub = {n,v.Desc,r}
+						local sub = {n,v.Desc,r,a}
 						table.insert(c,sub)
 					end
 				end
