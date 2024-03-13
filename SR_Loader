@@ -194,9 +194,8 @@ players.PlayerAdded:Connect(function(player)
 	
 	
 	local setUserRank = rankAPI.LoadRank(player)[3]
-	if setUserRank == false or setUserRank == nil then
+	if setUserRank == nil then
 		warn("Failed to load the rank for the user: "..player.Name.." ("..player.UserId..")")
-		player:Kick("Failed to load user rank | Please rejoin")
 	end
 
 	
