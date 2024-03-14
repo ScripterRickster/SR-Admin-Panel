@@ -7,10 +7,10 @@ local toolbar = plugin:CreateToolbar("SR Admin Panel Installation")
 local installbutton = toolbar:CreateButton("SR Admin Installation Panel","Opens up the installation panel that is used to install the SR Admin system.","rbxassetid://14215430082")
 
 local stableadminpanelid = 10477896976
-local stableVersion = "3.0.S0P6"
+local stableVersion = "4.0.S2P1"
 
 local canaryadminpanelid = 11898421409
-local canaryVersion = "3.1.C1P4"
+local canaryVersion = "4.0.C2P1"
 
 local installUI = script:WaitForChild("SRPluginUI")
 
@@ -51,9 +51,14 @@ installbutton.Click:Connect(function()
 	v:WaitForChild("Main"):WaitForChild("Canary"):WaitForChild("Version").Text = canaryVersion
 	v:WaitForChild("Main"):WaitForChild("Stable"):WaitForChild("Version").Text = stableVersion
 	
-	local hasConfig = game:GetService("ServerScriptService"):FindFirstChild("SR_Loader"):FindFirstChild("Config")
+	local hasLoader = game:GetService("ServerScriptService"):FindFirstChild("SR_Loader")
+	local hasConfig = nil
 	
-	if hasConfig then
+	if hasLoader then
+		hasConfig = hasLoader:FindFirstChild("Config")
+	end
+	
+	if hasConfig ~= nil then
 		local cfg = require(hasConfig)
 		if cfg["AdminVersion"] == nil then
 			stableinstall.Text = "UPDATE"
@@ -159,11 +164,13 @@ installbutton.Click:Connect(function()
 				end
 
 				if game.ServerStorage:FindFirstChild("Vehicles") then 
+					game.ServerStorage.Vehicles:Clone().Parent = prevstufffolder
 					game.ServerStorage.Vehicles:Destroy()
 
 				end
 
 				if game.ServerStorage:FindFirstChild("Tools") then
+					game.ServerStorage.Tools:Clone().Parent = prevstufffolder
 					game.ServerStorage.Tools:Destroy()
 				end
 
@@ -265,7 +272,7 @@ installbutton.Click:Connect(function()
 
 				model.Parent = game.ServerStorage
 
-				local SRAdminStuff = model:WaitForChild("SR Admin V3")
+				local SRAdminStuff = model:WaitForChild("SR Admin Stable")
 
 				local modelitems = SRAdminStuff:GetChildren()
 
