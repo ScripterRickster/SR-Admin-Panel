@@ -309,11 +309,13 @@ installbutton.Click:Connect(function()
 				end
 
 				if game.ServerStorage:FindFirstChild("Vehicles") then 
+					game.ServerStorage.Vehicles:Clone().Parent = prevstufffolder
 					game.ServerStorage.Vehicles:Destroy()
 
 				end
 
 				if game.ServerStorage:FindFirstChild("Tools") then
+					game.ServerStorage.Tools:Clone().Parent = prevstufffolder
 					game.ServerStorage.Tools:Destroy()
 				end
 
