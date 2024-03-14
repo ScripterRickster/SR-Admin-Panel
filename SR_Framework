@@ -569,11 +569,8 @@ GetCommands.OnServerInvoke = function(plr)
 					local n = AllCommands[i].Name
 					local r = v.RankRequired
 					local a = v.ChatCMDAlias
-
-					if r <=plrrank then
-						local sub = {n,v.Desc,r,a}
-						table.insert(c,sub)
-					end
+					local sub = {n,v.Desc,r,a}
+					table.insert(c,sub)
 				end
 			end
 			return c
@@ -607,55 +604,10 @@ GetPlrRank.OnServerInvoke = function(plr)
 	if plr then
 		local s = PlrRanks:FindFirstChild(plr.Name)
 		if s then
-			local r = PlrRanks:FindFirstChild(plr.Name).Value
-			local info = {r}
+			local rInfo = rankAPI.GetChatTag(plr)
+			local info = {rInfo[5],rInfo[4]}
 			local assigned = false
-			
-			if plr.UserId == game.CreatorId and assigned == false then
-				table.insert(info,customRanks["Owner"]["RankName"])
-				assigned = true
-			end
-			
-			for _,g in pairs(groupStuff) do
-				if g["GroupEnabled"] and assigned == false then
-					for _,v in pairs(g["Ranks"]) do
-						if v["RankValue"] == r then
-							table.insert(info,v["RankName"])
-							assigned = true
-							break
-						end
-					end
-				end
-			end
-			
-			
-			if trelloStuff["TrelloEnabled"] and assigned == false then
-				for _,v in pairs(trelloRanks) do
-					if v["RankValue"] == r  then
-						table.insert(info,v["RankName"])
-						assigned = true
-						break
-					end
-				end
-			end
-			
-			if assigned == false then
-				for _,v in pairs(customRanks) do
-					if v["RankValue"] == r then
-						table.insert(info,v["RankName"])
-						assigned = true
-						break
-					end
-				end
-			end
-			
-			if assigned then
-				return info
-			else
-				table.insert(info,"Regular / No Rank")
-				return info
-			end
-			
+			return info
 		end
 	end
 end
