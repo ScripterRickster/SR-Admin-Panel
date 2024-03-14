@@ -38,7 +38,7 @@ local ReasonQA = QA.Reason.Input
 local WarnQA = QA.Warn.ClickRegion
 local KickQA = QA.Kick.ClickRegion
 local SBanQA = QA["Server Ban"].ClickRegion
-local PBanQA = QA["Perm Ban"].ClickRegion
+local BringQA = QA["Bring"].ClickRegion
 -------------------------CommandUI-------------------------
 local CommandDescFrame = Commands.Content.AContent.CommandDescFrame.Desc
 local CommandListFrame = Commands.Content.AContent.Commands.Commands.Cmds
@@ -126,7 +126,23 @@ for i=1,#AvailableCMDS do
 		temp.Visible = true
 		temp.Name = AvailableCMDS[i][1]
 		temp.Parent = CommandListFrame
+		
+	else
+		if string.lower(AvailableCMDS[i][1]) == "warn" then
+			WarnQA.Active = false
+			WarnQA.Parent.Title.TextColor3 = Color3.new(0.282353, 0.282353, 0.282353)
+		elseif string.lower(AvailableCMDS[i][1]) == "kick" then
+			KickQA.Active = false
+			KickQA.Parent.Title.TextColor3 = Color3.new(0.282353, 0.282353, 0.282353)
+		elseif string.lower(AvailableCMDS[i][1]) == "perm kick" then
+			SBanQA.Active = false
+			SBanQA.Parent.Title.TextColor3 = Color3.new(0.282353, 0.282353, 0.282353)
+		elseif string.lower(AvailableCMDS[i][1]) == "bring" then
+			BringQA.Active = false
+			BringQA.Parent.Title.TextColor3 = Color3.new(0.282353, 0.282353, 0.282353)
+		end
 	end
+	
 end
 
 RankText.Text = currentplayerrank[2]
@@ -447,11 +463,11 @@ SBanQA.Activated:Connect(function()
 	end
 end)
 
-PBanQA.Activated:Connect(function()
+BringQA.Activated:Connect(function()
 	if QATargUser and QAReason ~= nil then
 		local plr = game.Players:FindFirstChild(QATargUser)
 		if plr then
-			ADMEvent:FireServer(plr.Name,"Ban",QAReason,nil)
+			ADMEvent:FireServer(plr.Name,"Bring",QAReason,nil)
 		end
 	end
 end)
