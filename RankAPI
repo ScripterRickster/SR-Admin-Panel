@@ -30,7 +30,7 @@ local customRanks = config["Custom Ranks"]
 
 function changerank.GetChatTag(plr: Player)
 	if plr then
-		local rankinfo = {nil,nil,true,nil} --[[ string rank, color value, tag enabled, rank name ]]
+		local rankinfo = {nil,nil,true,nil,0} --[[ string rank, color value, tag enabled, rank name ]]
 
 		local rankval = plrranks:WaitForChild(plr.Name)
 
@@ -65,6 +65,7 @@ function changerank.GetChatTag(plr: Player)
 							rankinfo[2] = v["StaffTag"]["TagColor"]
 							rankinfo[3] = v["TagEnabled"]
 							rankinfo[4] = v["RankName"]
+							rankinfo[5] = v["RankValue"]
 							break
 						end
 					end
@@ -88,6 +89,7 @@ function changerank.GetChatTag(plr: Player)
 							rankinfo[2] = v["StaffTag"]["TagColor"]
 							rankinfo[3] = v["TagEnabled"]
 							rankinfo[4] = v["RankName"]
+							rankinfo[5] = v["RankValue"]
 							break
 						end
 					end
@@ -100,12 +102,13 @@ function changerank.GetChatTag(plr: Player)
 
 		if rankinfo[2] == nil then
 			for _,v in pairs(customRanks) do
-				if v["RankValue"] == rankval then
+				if (table.find(v["Users"],plr.UserId) or table.find(v["Users"],tostring(plr.UserId)) or table.find(v["Users"],plr.Name)) ~= nil then
 					if v["TagEnabled"] == true then
 						rankinfo[1] = v["StaffTag"]["TagText"]
 						rankinfo[2] = v["StaffTag"]["TagColor"]
 						rankinfo[3] = v["TagEnabled"]
 						rankinfo[4] = v["RankName"]
+						rankinfo[5] = v["RankValue"]
 					end
 					break
 				end
@@ -122,11 +125,11 @@ function changerank.GetChatTag(plr: Player)
 					rankinfo[2] = v["StaffTag"]["TagColor"]
 					rankinfo[3] = v["TagEnabled"]
 					rankinfo[4] = v["RankName"]
+					rankinfo[5] = v["RankValue"]
 					break
 				end
 			end
 		end
-
 
 		return rankinfo
 
@@ -340,6 +343,7 @@ function changerank.LoadRank(plr: Player)
 		if checked then
 			rankinfo[3] = true
 		end
+	
 
 		return rankinfo
 	end
