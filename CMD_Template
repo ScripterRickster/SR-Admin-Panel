@@ -16,6 +16,13 @@ local wbhkAPI = require(APIs.WebhookAPI)
 local config = require(script.Parent.Parent.Parent:WaitForChild("SR_Loader").Config)
 local wbhkid = config["Webhook Logging"]["WebhookID"]
 local wbhkenabled = config["Webhook Logging"]["WebhookEnabled"]
+
+local serverType = "REGULAR"
+
+if game.PrivateServerId ~= "" then
+	serverType = "VIP"
+end
+
 -- Services go under here
 
 
