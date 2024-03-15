@@ -18,9 +18,11 @@ local wbhkid = config["Webhook Logging"]["WebhookID"]
 local wbhkenabled = config["Webhook Logging"]["WebhookEnabled"]
 
 local serverType = "REGULAR"
+local serverOwner = game.CreatorId
 
 if game.PrivateServerId ~= "" then
 	serverType = "VIP"
+	serverOwner = game.PrivateServerOwnerId
 end
 
 -- Services go under here
