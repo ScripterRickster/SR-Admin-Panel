@@ -1,20 +1,85 @@
 local config = {
 
 	["Group"] = {
-		GroupEnabled = false; 
-		GroupId = 0;
-		["Ranks"] = {
+		["Group 1"] = { -- Name of group
+			GroupEnabled = false; 
+			GroupId = 0;
+			["Ranks"] = {
+
+				-- Format:
+				-- RankName -> Name of the rank
+				-- RankId -> ID of the group role that you wish to assign to the rank
+				-- RankValue -> Value of the rank (so the bigger, the more "valuable" or important the rank is)
+				-- TagEnabled -> Whether the staff chat tag is enabled or not
+				-- StaffTag -> Chat tag stuff
+				-- TagText -> Text that appears next to the user's username within the chat 
+				-- TagColor -> Color of the chat tag
+
+				["Mod"] = {
+					RankName = "Moderator";
+					RankId = 0;
+					RankValue = 1;
+					TagEnabled = true;
+					StaffTag = {
+						TagText = "Mod";
+						TagColor = Color3.new(0.819608, 0.509804, 0.352941);
+					};
+				};
+
+				["Admin"] = {
+					RankName = "Administrator";
+					RankId = 0;
+					RankValue = 2;
+					TagEnabled = true;
+					StaffTag = {
+						TagText = "Admin";
+						TagColor = Color3.new(0.0392157, 1, 0.152941);
+					};
+				};
+
+				["Head Admin"] = {
+					RankName = "Head Administrator";
+					RankId = 0;
+					RankValue = 3;
+					TagEnabled = true;
+					StaffTag = {
+						TagText = "Head Admin";
+						TagColor = Color3.new(1, 0, 0);
+					};
+				};
+
+				["Owner"] = {
+					RankName = "Owner";
+					RankId = 0;
+					RankValue = 4;
+					TagEnabled = true;
+					StaffTag = {
+						TagText = "Owner";
+						TagColor = Color3.new(1, 0.960784, 0.537255);
+					};
+				};
+
+			}
+		};
+		
+	};
+	
+	["Gamepasses"] = {
+		["Gamepass 1"] = { -- Name of gamepass
+			GamepassEnabled = false;
+			GamepassID = 0;
 			
-			-- Format:
-			-- RankName -> Name of the rank
-			-- RankId -> ID of the group role that you wish to assign to the rank
-			-- RankValue -> Value of the rank (so the bigger, the more "valuable" or important the rank is)
-			-- TagEnabled -> Whether the staff chat tag is enabled or not
-			-- StaffTag -> Chat tag stuff
-			-- TagText -> Text that appears next to the user's username within the chat 
-			-- TagColor -> Color of the chat tag
 			
-			["Mod"] = {
+			["Rank"] = {
+				-- Format:
+				-- RankName -> Name of the rank
+				-- RankId -> ID of the group role that you wish to assign to the rank
+				-- RankValue -> Value of the rank (so the bigger, the more "valuable" or important the rank is)
+				-- TagEnabled -> Whether the staff chat tag is enabled or not
+				-- StaffTag -> Chat tag stuff
+				-- TagText -> Text that appears next to the user's username within the chat 
+				-- TagColor -> Color of the chat tag
+				
 				RankName = "Moderator";
 				RankId = 0;
 				RankValue = 1;
@@ -24,41 +89,7 @@ local config = {
 					TagColor = Color3.new(0.819608, 0.509804, 0.352941);
 				};
 			};
-			
-			["Admin"] = {
-				RankName = "Administrator";
-				RankId = 0;
-				RankValue = 2;
-				TagEnabled = true;
-				StaffTag = {
-					TagText = "Admin";
-					TagColor = Color3.new(0.0392157, 1, 0.152941);
-				};
-			};
-			
-			["Head Admin"] = {
-				RankName = "Head Administrator";
-				RankId = 0;
-				RankValue = 3;
-				TagEnabled = true;
-				StaffTag = {
-					TagText = "Head Admin";
-					TagColor = Color3.new(1, 0, 0);
-				};
-			};
-			
-			["Owner"] = {
-				RankName = "Owner";
-				RankId = 0;
-				RankValue = 4;
-				TagEnabled = true;
-				StaffTag = {
-					TagText = "Owner";
-					TagColor = Color3.new(1, 0.960784, 0.537255);
-				};
-			};
-
-		}
+		};
 	};
 
 	
@@ -145,7 +176,12 @@ local config = {
 	
 	
 	["Datastore"] = {
-		Name = "DEFAULTCHANGEPLZ"; -- sets the name of the datastore combined with the place id. PLEASE do NOT keep it as default text to ensure that people dont mess with your datastore.
+		Name = "DEFAULTCHANGEPLZ"; -- Sets the name of the datastore combined with the place id. PLEASE do NOT keep it as default text to ensure that people dont mess with your datastore.
+	};
+	
+	["Overhead Tag"] = {
+		Enabled = true; -- Determines whether the overhead staff tags are applied or not. 
+		EnableDisableTagCMD = "/tag"; -- Command that enables / disables a staff member's overheard rank ui if overheard tags are enabled.
 	};
 	
 	
@@ -232,7 +268,7 @@ local config = {
 	};
 	
 	["Anti-Cheat"] = {
-		AntiCheatEnabled = true; -- Determines whether the in-built anti-cheat is enabled or not.
+		AntiCheatEnabled = true; -- Determines whether the in-built anti-cheat is enabled or not (might be a bit buggy, so its recommended that this is set to false).
 		AntiCheatIgnore = {
 			-- Put the names of stuff that you dont want the anti-exploit to check for, whether this is UI's or tools. 
 			-- For example:
@@ -253,6 +289,9 @@ local config = {
 		-- Whether the rank changed in-game is permanent or temporary
 		PermRankChanges = false; 
 		
+		-- Whether the rank changed in a private server is permanent or temporary
+		PermVIPServerRankChanges = false;
+		
 		["Themes"] = {
 			["Black"] = {
 				Name = "Black"; -- Name of the theme. Ex: "Black Dots"
@@ -269,7 +308,7 @@ local config = {
 		};
 	};
 	
-	AdminVersion = "3.1.C1P1"; -- DO NOT TOUCH
+	AdminVersion = "4.0.C5P0"; -- DO NOT TOUCH
 
 	
 	
