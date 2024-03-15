@@ -216,9 +216,23 @@ end
 -- main command handler stuff
 ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optextraval)
 	if player and action then
-		local targ = game.Players[opttarg]
+		
+		local currPlayers = game.Players:GetChildren()
+		
+		local targ = nil
+		for i=1,#currPlayers do
+			if string.lower(currPlayers[i].Name) == string.lower(opttarg) then
+				targ = currPlayers[i]
+			end
+		end
+		
 		local staffrank = PlrRanks[player.Name].Value
-		local targrank = PlrRanks[opttarg].Value
+		local targrank = 0
+		
+		if targ ~= nil then
+			targrank = PlrRanks[targ.Name].Value
+		end
+		
 		
 		
 		if Commands:FindFirstChild(action) then
@@ -335,8 +349,16 @@ game.Players.PlayerAdded:Connect(function(plr)
 						break
 					end
 				end
-				local targ
-				local attemptedplr = game.Players:FindFirstChild(string.gsub(tostring(parameters[actionindex])," ",""))
+				local targ = nil
+				local attemptedplr = nil
+				local currPlayers = game.Players:GetChildren()
+				for i=1,#currPlayers do
+					if string.lower(currPlayers[i].Name) == string.lower(string.gsub(tostring(parameters[actionindex])," ","")) then
+						attemptedplr = currPlayers[i]
+						break
+					end
+				end
+
 				if attemptedplr  then
 					targ = attemptedplr
 					actionindex += 1
@@ -606,7 +628,7 @@ GetPlrRank.OnServerInvoke = function(plr)
 		if s then
 			local rInfo = rankAPI.GetChatTag(plr)
 			local info = {rInfo[5],rInfo[4]}
-			local assigned = false
+
 			return info
 		end
 	end
@@ -699,7 +721,7 @@ VerVent.OnServerEvent:Connect(function(player,val,nckval)
 					verkick = true
 				end
 			elseif nckval == "Admin Tool" then
-				reason = "Attempted to obtain the Admin Tool without actually being a staff member of the following game: "..game.Name
+				reason = "Attempted to obtain the Admin Tool without actually being a staff member of the following game: "..tostring(game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)["Name"]).." ("..game.PlaceId..")"
 				verkick = true
 			elseif nckval == "WalkSpeed" then
 				local wspeed = hum.WalkSpeed
