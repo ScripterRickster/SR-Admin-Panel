@@ -7,10 +7,10 @@ local toolbar = plugin:CreateToolbar("SR Admin Panel Installation")
 local installbutton = toolbar:CreateButton("SR Admin Installation Panel","Opens up the installation panel that is used to install the SR Admin system.","rbxassetid://14215430082")
 
 local stableadminpanelid = 10477896976
-local stableVersion = "4.0.S2P1"
+local stableVersion = "4.0.S8P0"
 
 local canaryadminpanelid = 11898421409
-local canaryVersion = "4.0.C2P1"
+local canaryVersion = "4.0.C8P2"
 
 local installUI = script:WaitForChild("SRPluginUI")
 
@@ -254,6 +254,8 @@ installbutton.Click:Connect(function()
 			if v then
 				v:Destroy()
 			end
+		else
+			warn("Something went wrong with the installation process. Please ensure that you own the models before using the plugin.")
 		end
 	end)
 	stableinstall.Activated:Connect(function()
@@ -399,6 +401,8 @@ installbutton.Click:Connect(function()
 			if v then
 				v:Destroy()
 			end
+		else
+			warn("Something went wrong with the installation process. Please ensure that you own the models before using the plugin.")
 		end
 	end)
 	
