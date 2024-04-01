@@ -8,6 +8,7 @@ local Template = {
 	ChatCMDAlias = ""; -- Maximum of 2 words. Ex: "sr admin". This is a short form of the command name which will trigger this command when used in chat 
 	Desc = ""; -- Description of the command
 	LogsToUserModLogs = false; -- Whether the command is logged to the user's logs or not. This parameter is NOT required for the command, as the default the system sets it to is false unless you set it to true by adding this option and changing it from false to true
+	ApplyRankHeirarchy = false; -- Whether the command checks to see if the user(s) being targetted are above the current staff member's rank. (OPTIONAL PARAMETER)
 }
 --Default stuff you'll need
 local APIs = script.Parent.Parent["API's"]
@@ -23,6 +24,13 @@ local serverOwner = game.CreatorId
 if game.PrivateServerId ~= "" then
 	serverType = "VIP"
 	serverOwner = game.PrivateServerOwnerId
+end
+
+local sOwner = "["..game.Players:GetNameFromUserIdAsync(serverOwner).."](https://www.roblox.com/users/"..serverOwner.."/profile)"
+
+if game.CreatorType == Enum.CreatorType.Group then
+	sOwner = "["..game:GetService("GroupService"):GetGroupInfoAsync(game.CreatorId).Name.."](https://www.roblox.com/groups/"..game.CreatorId..")"
+
 end
 
 -- Services go under here
