@@ -482,7 +482,7 @@ UpdateLogEvent.OnClientEvent:Connect(function(text)
 	end
 end)
 
-UpdateChatLogs.OnClientInvoke = function(newChatLogs)
+UpdateChatLogs.OnClientEvent:Connect(function(newChatLogs)
 	local chatLogs = ChatLogsFrame.Content.AContent.QA.Bracket.ChatLogs
 	for i=1,#newChatLogs do
 		if chatLogs:FindFirstChild(newChatLogs[i][1].Name.."'s Logged Message #"..tostring(newChatLogs[i][5])) == nil then
@@ -495,5 +495,4 @@ UpdateChatLogs.OnClientInvoke = function(newChatLogs)
 			newChatLog.Visible = true
 		end
 	end
-
-end
+end)
