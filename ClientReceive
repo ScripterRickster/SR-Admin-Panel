@@ -6,10 +6,14 @@ local RS = game:GetService("ReplicatedStorage"):WaitForChild("SRAdminEvents")
 local CLTEvent = RS:WaitForChild("CLTEvent")
 local pltevent = RS:WaitForChild("PltEvent")
 local GetTagInfo = RS:WaitForChild("GetChatTags")
+local trackEvent = RS:WaitForChild("TrackEvent")
 
 local camera = game.Workspace.CurrentCamera
 
 local muted = false
+
+local player = game.Players.LocalPlayer
+
 
 -- Main event that deals with client related stuff
 CLTEvent.OnClientEvent:Connect(function(action,optextraval)
@@ -49,6 +53,7 @@ TCS.OnIncomingMessage = function(message: TextChatMessage)
 	if message.TextSource and TCS.ChatVersion == Enum.ChatVersion.TextChatService and muted == false then
 		local plr = Players:GetPlayerByUserId(message.TextSource.UserId)
 		if plr then
+			
 			local taginfo = GetTagInfo:InvokeServer(plr)
 			if taginfo and taginfo[3] == true then
 				local color3 = taginfo[2]
@@ -61,3 +66,33 @@ TCS.OnIncomingMessage = function(message: TextChatMessage)
 	end
 end
 
+-- for tracking cmd
+trackEvent.OnClientEvent:Connect(function(action,hrp)
+	if hrp then
+		local char = player.Character or player.CharacterAdded:Wait()
+		local humrootpart = char:WaitForChild("HumanoidRootPart")
+		if action == "track" then
+			local a1,a2 = nil,nil
+			if humrootpart:FindFirstChild("Original") then
+				a1 = humrootpart:FindFirstChild("Original")
+			end
+			if hrp:FindFirstChild("Original") then
+				a2 = hrp:FindFirstChild("Original")
+			end
+			
+			if a1 and a2 then
+				local trackBeam = Instance.new("Beam")
+				trackBeam.Color = ColorSequence.new(Color3.new(0.333333, 1, 1))
+				trackBeam.Attachment0 = a1
+				trackBeam.Attachment1 = a2
+				trackBeam.Parent = humrootpart
+				trackBeam.Enabled = true
+				trackBeam.Name = game.Players:GetPlayerFromCharacter(hrp.Parent).Name
+			end
+		elseif action == "untrack" then
+			if humrootpart:FindFirstChild(game.Players:GetPlayerFromCharacter(hrp.Parent).Name) then
+				humrootpart:FindFirstChild(game.Players:GetPlayerFromCharacter(hrp.Parent).Name):Destroy()
+			end
+		end
+	end
+end)
