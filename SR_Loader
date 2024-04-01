@@ -30,7 +30,7 @@ local banlist = config["Banned Users"]
 local DDS = game:GetService("DataStoreService")
 local dsName = config["Datastore"]["Name"]
 local bandatastore = DDS:GetDataStore(game.PlaceId..dsName,"Banned_Users")
-local staffdatastore = DDS:GetDataStore(game.PlaceId..dsName,"Staff")
+local vipbandatastore = nil
 
 -- chat version
 local chatversion 
@@ -86,12 +86,27 @@ local rankAPI = require(APIs.RankAPI)
 
 local players = game:GetService("Players")
 
+-- tracking
+local trackingFolder = framework.Tracking
+local trackingEvent = game.ReplicatedStorage.SRAdminEvents.TrackEvent
+
+-- server type
+local serverType = "REG"
+if game.PrivateServerId ~= "" then
+	serverType = "VIP"
+	vipbandatastore = DDS:GetDataStore(game.PrivateServerId,"Banned_Users")
+end
+
 players.PlayerAdded:Connect(function(player)
 
 	local framework2 = script.Parent:WaitForChild("SR_FrameWork")
 	local API = framework2["API's"]
 	local HelpReqUI = framework2["UIs"]["HelpRequests"]:Clone()
 	HelpReqUI.Parent = player.PlayerGui
+	
+	local userTrackFolder = Instance.new("Folder")
+	userTrackFolder.Name = player.Name
+	userTrackFolder.Parent = trackingFolder
 
 
 
@@ -121,7 +136,6 @@ players.PlayerAdded:Connect(function(player)
 			end
 		end
 	else
-		
 		local baninfo = nil
 		local banstoreData,err = pcall(function()
 			baninfo = bandatastore:GetAsync(player.UserId)
@@ -150,7 +164,7 @@ players.PlayerAdded:Connect(function(player)
 					local days = math.floor(diff / 86400)
 					
 					if days < roundedDuration then
-						player:Kick("You have been banned from this experience | Length: "..baninfo[2].." day(s) | Time Remaining: "..roundedDuration-days.." days | Reason: "..tostring(baninfo[1]))
+						player:Kick("You have been banned from this experience | Length: "..baninfo[2].." day(s) | Time Remaining: "..roundedDuration-days.." day(s) | Reason: "..tostring(baninfo[1]))
 						return
 					else
 						local succ,err = pcall(function()
@@ -171,6 +185,60 @@ players.PlayerAdded:Connect(function(player)
 
 			if err then
 				print("SR Admin System encountered the following error while attempting to set a default value: "..tostring(err))
+			end
+		end
+		
+		if serverType == "VIP" then
+			local vipbaninfo = nil
+			local vipbanstoreData,err = pcall(function()
+				vipbaninfo = vipbandatastore:GetAsync(player.UserId)
+			end)
+
+			if vipbaninfo ~= nil and type(vipbaninfo) == "table" then
+				if vipbaninfo[4] == true then
+
+					if vipbaninfo[3] == true then
+						player:Kick("You have been banned from this private server | Length: Infinite | Time Remaining: Infinite | Reason: "..tostring(baninfo[1]))
+						return
+					else
+
+						local vipbanDate = string.split(vipbaninfo[5],"/")
+
+						local viproundedDuration = tonumber(vipbaninfo[2])
+
+						local vipbanDateTFormat = os.time({year = tonumber(vipbanDate[3]),month = tonumber(vipbanDate[1]), day = tonumber(vipbanDate[2])  })
+
+						local tempCurrDate = string.split(os.date("%x"),"/")
+						local currDate = string.split(tempCurrDate[1].."/"..tempCurrDate[2].."/"..tostring(os.date("*t").year),"/")
+
+						local currDateTFormat = os.time({year = tonumber(currDate[3]),month = tonumber(currDate[1]), day = tonumber(currDate[2])  })
+
+						local diff = currDateTFormat - vipbanDateTFormat
+						local days = math.floor(diff / 86400)
+
+						if days < viproundedDuration then
+							player:Kick("You have been banned from this private server | Length: "..vipbaninfo[2].." day(s) | Time Remaining: "..viproundedDuration-days.." days | Reason: "..tostring(vipbaninfo[1]))
+							return
+						else
+							local succ,err = pcall(function()
+								vipbandatastore:SetAsync(player.UserId,{nil,nil,false,false,nil}) -- {reason, timeleft, is permanment, is bannable, time when banned}
+							end)
+
+							if err then
+								print("SR Admin System encountered the following error while attempting to remove a ban: "..tostring(err))
+							end
+						end
+
+					end
+				end
+			else
+				local succ,err = pcall(function()
+					vipbandatastore:SetAsync(player.UserId,{nil,nil,false,false,nil})
+				end)
+
+				if err then
+					print("SR Admin System encountered the following error while attempting to set a default value: "..tostring(err))
+				end
 			end
 		end
 			
@@ -282,10 +350,36 @@ players.PlayerAdded:Connect(function(player)
 
 end)
 
--- tool stuff
+-- tool stuff and other miscellaneous stuff
 
 game.Players.PlayerAdded:Connect(function(plr)
 	plr.CharacterAdded:Connect(function(char)
+		if char:WaitForChild("HumanoidRootPart"):FindFirstChild("Original") == nil then
+			local newAttach = Instance.new("Attachment")
+			newAttach.Name = "Original"
+			newAttach.Parent = char:WaitForChild("HumanoidRootPart")
+		end
+		local allTrackedUsers = trackingFolder:GetDescendants()
+		for _,k in pairs(allTrackedUsers) do
+			if k:IsA("ObjectValue") and k.Name == plr.Name then
+
+				if game.Players:FindFirstChild(k.Name) then
+					repeat wait() until plr.Character ~= nil
+					local tempHRP = plr.Character:WaitForChild("HumanoidRootPart")
+					k.Value = tempHRP
+					trackingEvent:FireClient(game.Players:FindFirstChild(k.Name),"track",tempHRP)
+				end
+			elseif k:IsA("ObjectValue") and k.Parent.Name == plr.Name then
+
+				if game.Players:FindFirstChild(k.Name) then
+					repeat wait() until game.Players:FindFirstChild(k.Name).Character ~= nil
+					local tempHRP = game.Players:FindFirstChild(k.Name).Character:WaitForChild("HumanoidRootPart")
+					k.Value = tempHRP
+					trackingEvent:FireClient(plr,"track",tempHRP)
+				end
+			end
+
+		end
 		overheadTagAPI.SetTag(plr)
 		local humanoid = char:WaitForChild("Humanoid")
 		humanoid.Died:Connect(function()
@@ -321,14 +415,21 @@ game.Players.PlayerAdded:Connect(function(player)
 			local currTime = tostring((DateTime.now()):FormatLocalTime("LLL","en-us")).." EST/EDT"
 			table.insert(ChatLogs,{player,player.UserId,msg,currTime,MsgNumber})
 			
-			local plrrank = script.Parent:WaitForChild("SR_FrameWork"):WaitForChild("PlayerRanks"):FindFirstChild(tostring(player.Name))
-			if plrrank then
-				if plrrank.Value > 0 then
-					ChatlogAPI.SentMessage(ChatLogs)
-				end
-			end
+			ChatlogAPI.SentMessage(ChatLogs)
 			MsgNumber += 1
 		end
 	end)
+end)
+
+
+game.Players.PlayerRemoving:Connect(function(player)
+	if player.Character ~= nil then
+		if player.Character:FindFirstChild("HumanoidRootPart") ~= nil then
+			trackingEvent:FireAllClients("untrack",player.Character:FindFirstChild("HumanoidRootPart"))
+		end
+		if trackingFolder:FindFirstChild(player.Name) then
+			trackingFolder:FindFirstChild(player.Name):Destroy()
+		end
+	end
 end)
 
