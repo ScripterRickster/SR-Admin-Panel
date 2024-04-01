@@ -65,6 +65,28 @@ MS:SubscribeAsync("Global Announcements",function(info)
 	end
 end)
 
+if game.PrivateServerId ~= "" then
+	MS:SubscribeAsync(game.PrivateServerId,function(info)
+		if info then
+			info = HTTPS:JSONDecode(info.Data)
+			repeat wait() until msgAnnounced.Value == false
+			msgAnnounced.Value = true
+			local gameplrs = game.Players:GetChildren()
+
+			for i=1,#gameplrs do
+				if gameplrs[i] then
+					local msguic = msgui:Clone()
+					msguic.Modal.Desc.Stats.TextRegion.Role.Text = tostring(info['Message']) -- msg
+					msguic.Modal.Info.Stats.Plr.UserId.Value = tonumber(info['Staff UserID']) -- staff id
+					msguic.Modal.Info.Stats.TextRegion.Title.Text = tostring(info['Staff Name']) -- staff name
+					msguic.Modal.Info.Stats.TextRegion.Role.Text = tostring(info['Rank Name']) -- rank str
+					msguic.Parent = gameplrs[i].PlayerGui
+				end
+			end
+		end
+	end)
+end
+
 
 
 
@@ -231,6 +253,10 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 		
 		if targ ~= nil then
 			targrank = PlrRanks[targ.Name].Value
+		elseif opttarg == "all" then
+			targ = "all"
+		else
+			targ = opttarg
 		end
 		
 		
@@ -247,7 +273,7 @@ ADMEventV2.OnServerEvent:Connect(function(player,opttarg,action,optreason,optext
 				cmdSuccess = cmd.ExecuteCommand(targ,player,staffrank,targrank,optreason,optextraval)
 			elseif action == "Shutdown" and optreason then
 				cmdSuccess = cmd.ExecuteCommand(player,staffrank,optreason)
-			elseif action == "Freeze" or action == "Unfreeze" or action == "Unfly" or action == "View" or action == "Kill" or action == "God" or action == "Ungod" or action == "Refresh" then
+			elseif action == "Freeze" or action == "Unfreeze" or action == "Unfly" or action == "View" or action == "Kill" or action == "God" or action == "Ungod" or action == "Refresh" or action == "Track" or action == "Untrack" then
 				cmdSuccess = cmd.ExecuteCommand(targ,player,staffrank,targrank)
 			elseif action == "Fly" or action == "Set Team"  or action == "Give Tool" or action == "Remove Tool" or action == "Set Rank" or action == "Set JumpPower" or action == "Set Walkspeed" and optextraval then
 				cmdSuccess = cmd.ExecuteCommand(targ,player,staffrank,targrank,optextraval)
@@ -325,7 +351,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 			helpReqAPI.AddReq(plr)
 		end
 		if cmd and ChatCommandsEnabled == true then
-			if string.find(tostring(cmd),tostring(ChatCommandPrefix),1,false) then
+			if string.find(tostring(cmd),tostring(ChatCommandPrefix),1,false) == 1 then
 				cmd = string.gsub(tostring(cmd),tostring(ChatCommandPrefix),"")
 				local parameters = string.split(tostring(cmd)," ")
 				if #parameters <= 1 then return end 
@@ -351,6 +377,8 @@ game.Players.PlayerAdded:Connect(function(plr)
 				end
 				local targ = nil
 				local attemptedplr = nil
+				
+
 				local currPlayers = game.Players:GetChildren()
 				for i=1,#currPlayers do
 					if string.lower(currPlayers[i].Name) == string.lower(string.gsub(tostring(parameters[actionindex])," ","")) then
@@ -358,20 +386,54 @@ game.Players.PlayerAdded:Connect(function(plr)
 						break
 					end
 				end
+				
+				if string.lower(action) == "ban" or string.lower(action) == "unban" then
+					if tonumber(string.lower(string.gsub(tostring(parameters[actionindex])," ",""))) == nil then
+						if game.Players:GetPlayerByUserId(game.Players:GetUserIdFromNameAsync(string.lower(string.gsub(tostring(parameters[actionindex])," ","")))) then
+							attemptedplr = game.Players:GetPlayerByUserId(game.Players:GetUserIdFromNameAsync(string.lower(string.gsub(tostring(parameters[actionindex])," ",""))))
 
-				if attemptedplr  then
+						end
+					else
+						if game.Players:GetPlayerByUserId(tonumber(string.lower(string.gsub(tostring(parameters[actionindex])," ","")))) then
+							attemptedplr = game.Players:GetPlayerByUserId(tonumber(string.lower(string.gsub(tostring(parameters[actionindex])," ",""))))
+						end
+					end
+				end
+
+				if attemptedplr then
 					targ = attemptedplr
 					actionindex += 1
 				else
 					attemptedplr = plr
 					targ = plr
 				end
+				
+				
+				if string.lower(action) == "track" or string.lower(action) == "untrack" then
+					if targ == "" or targ == nil or string.lower(string.gsub(tostring(parameters[actionindex])," ","")) == "all" then
+						targ = "all"
+						attemptedplr = "all"
+					end
+				end
+				
+
 				if attemptedplr == nil then return end
 				
 				if action and targ ~= "" and targ ~= nil then
 					local actionreq = require(Commands[action])
 					local staffrank = PlrRanks[plr.Name].Value
-					local targrank = PlrRanks[targ.Name].Value
+					local targrank = 0
+					
+					if targ ~= "all" then
+						if PlrRanks:FindFirstChild(targ.Name) then
+							targrank = PlrRanks[targ.Name].Value
+						end
+						
+						if targ.UserId == game.CreatorId then
+							targrank = customRanks["Owner"]["RankValue"]
+						end
+					end
+					
 					action = string.lower(tostring(action))
 					local paramlength = #parameters
 					
@@ -381,11 +443,13 @@ game.Players.PlayerAdded:Connect(function(plr)
 					
 					local optreason = ""
 					
-					if action == "mute" or action == "unmute" or action == "warn" or action == "kick" or action == "bring" or action == "Unban" or action == "perm kick" or action == "teleport to" then
+					
+					if action == "mute" or action == "unmute" or action == "warn" or action == "kick" or action == "bring" or action == "unban" or action == "perm kick" or action == "teleport to" then
 						for i=actionindex,paramlength do
 							optreason = optreason .. parameters[i] .. " "
 						end
 						if optreason ~= "" and optreason ~= nil then
+
 							cmdSuccess = actionreq.ExecuteCommand(targ,plr,staffrank,targrank,optreason)
 						end
 					elseif action ==  "ban" then
@@ -404,7 +468,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 						if optreason ~= "" and optreason ~= nil then
 							cmdSuccess = actionreq.ExecuteCommand(plr,staffrank,optreason)
 						end
-					elseif action == "freeze" or action == "unfreeze" or action == "unfly" or action == "view" or action == "kill" or action == "god" or action == "ungod" or action == "refresh" then
+					elseif action == "freeze" or action == "unfreeze" or action == "unfly" or action == "view" or action == "kill" or action == "god" or action == "ungod" or action == "refresh" or action == "track" or action == "untrack" then
 						cmdSuccess = actionreq.ExecuteCommand(targ,plr,staffrank,targrank)
 					elseif action == "fly" or action == "set team"  or action == "give tool" or action == "remove tool" or action == "set rank" then
 						if action ~= "give tool" and action ~= "remove tool" then
@@ -605,7 +669,7 @@ end
 
 GetChatTagInfo.OnServerInvoke = function(plr)
 	if plr then
-		return rankAPI.GetChatTag(plr)
+		return (rankAPI.GetChatTag(plr))
 	end
 end
 
