@@ -126,9 +126,6 @@ local vehicles = SStorage.Vehicles
 
 -- rank stuff
 local customRanks = config["Custom Ranks"]
-local groupStuff = config["Group"]
-local trelloStuff = config["Trello Stuff"]
-local trelloRanks = trelloStuff["Ranks"]
 
 -- themes
 local allThemes = config["Miscellaneous"]["Themes"]
@@ -389,17 +386,15 @@ game.Players.PlayerAdded:Connect(function(plr)
 				
 				if string.lower(action) == "ban" or string.lower(action) == "unban" then
 					if tonumber(string.lower(string.gsub(tostring(parameters[actionindex])," ",""))) == nil then
-						if game.Players:GetPlayerByUserId(game.Players:GetUserIdFromNameAsync(string.lower(string.gsub(tostring(parameters[actionindex])," ","")))) then
-							attemptedplr = game.Players:GetPlayerByUserId(game.Players:GetUserIdFromNameAsync(string.lower(string.gsub(tostring(parameters[actionindex])," ",""))))
-
+						if game.Players:GetUserIdFromNameAsync(string.lower(string.gsub(tostring(parameters[actionindex])," ",""))) then
+							attemptedplr = game.Players:GetUserIdFromNameAsync(string.lower(string.gsub(tostring(parameters[actionindex])," ","")))
 						end
 					else
-						if game.Players:GetPlayerByUserId(tonumber(string.lower(string.gsub(tostring(parameters[actionindex])," ","")))) then
-							attemptedplr = game.Players:GetPlayerByUserId(tonumber(string.lower(string.gsub(tostring(parameters[actionindex])," ",""))))
-						end
+						attemptedplr = tonumber(string.lower(string.gsub(tostring(parameters[actionindex])," ","")))
 					end
 				end
-
+				
+				
 				if attemptedplr then
 					targ = attemptedplr
 					actionindex += 1
@@ -424,7 +419,7 @@ game.Players.PlayerAdded:Connect(function(plr)
 					local staffrank = PlrRanks[plr.Name].Value
 					local targrank = 0
 					
-					if targ ~= "all" then
+					if targ ~= "all" and game.Players:FindFirstChild(tostring(targ)) ~= nil then
 						if PlrRanks:FindFirstChild(targ.Name) then
 							targrank = PlrRanks[targ.Name].Value
 						end
