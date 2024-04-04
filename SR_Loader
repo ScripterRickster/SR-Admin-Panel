@@ -54,8 +54,6 @@ framework.Disabled = false
 
 local PKU = framework:FindFirstChild("PermKickedUsers")
 
-local CA = framework:FindFirstChild("ChannelAccess")
-
 local UIBlur = framework:FindFirstChild("UIs"):FindFirstChild("UIBlur")
 UIBlur.Parent = game.Lighting
 
@@ -74,6 +72,10 @@ local TrelloAPIKey = Trello["TrelloAPIKey"]
 local TrelloRanks = Trello["Ranks"]
 
 local APIs = framework["API's"]
+local nonRequireTrelloAPI = APIs.TrelloAPI
+local TrelloAPISettings = nonRequireTrelloAPI.Settings
+TrelloAPISettings:WaitForChild("TrelloToken").Value = TrelloToken
+TrelloAPISettings:WaitForChild("TrelloKey").Value = TrelloAPIKey
 local TrelloApi = require(APIs.TrelloAPI)
 
 -- overhead tag
@@ -126,10 +128,10 @@ players.PlayerAdded:Connect(function(player)
 
 	
 	elseif TrelloEnabled == true then
-		local BanBoardID = TrelloApi:GetBoardID(TrelloBoardName)
+		local BanBoardID = TrelloApi.BoardsAPI.GetBoardID(TrelloBoardName)
 
-		local BanListID = TrelloApi:GetListID(TrelloBanListName,BanBoardID)
-		local BanCards = TrelloApi:GetCardsInList(BanListID)
+		local BanListID = TrelloApi.BoardsAPI.GetListID(TrelloBanListName,BanBoardID)
+		local BanCards = TrelloApi.CardsAPI.GetCardsOnList(BanListID)
 		for _, i in pairs(BanCards) do
 			if string.find(i.name,player.UserId) or string.find(i.name,player.Name) then
 				player:Kick("You have been banned from this experience")
@@ -256,9 +258,6 @@ players.PlayerAdded:Connect(function(player)
 	framework.UIs.Panel.UIManager.RprtInterval.Value = reportcooldown
 	framework.UIs.Panel.UIManager.CMDCooldown.Value = cmdcooldown
 	
-	local plrchannelfolder = Instance.new("Folder")
-	plrchannelfolder.Name = player.UserId
-	plrchannelfolder.Parent = CA
 	
 	
 	local setUserRank = rankAPI.LoadRank(player)[3]
@@ -334,17 +333,6 @@ players.PlayerAdded:Connect(function(player)
 		ChatService.SpeakerAdded:Connect(function(speakerName)
 			chattagAPI.SetTag(speakerName)
 		end)
-	else
-		local textchannels = game.TextChatService:WaitForChild("TextChannels"):GetChildren()
-
-		for i=1,#textchannels do
-			if textchannels[i]:FindFirstChild(player.DisplayName) then
-				local channelval = Instance.new("StringValue")
-				channelval.Value = textchannels[i].Name
-				channelval.Name = textchannels[i].Name
-				channelval.Parent = plrchannelfolder
-			end
-		end
 	end
 	
 
@@ -429,6 +417,12 @@ game.Players.PlayerRemoving:Connect(function(player)
 		end
 		if trackingFolder:FindFirstChild(player.Name) then
 			trackingFolder:FindFirstChild(player.Name):Destroy()
+		end
+		local allTrackedPlrs = trackingFolder:GetDescendants()
+		for _,i in pairs(allTrackedPlrs) do
+			if i.Name == player.Name then
+				i:Destroy()
+			end
 		end
 	end
 end)
